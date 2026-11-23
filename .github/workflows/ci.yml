@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@v10.4.0
         with:
           # The oldest Python the add-on supports, so code that needs a newer
           # one fails here. pip then installs the newest Orange that runs on it.
