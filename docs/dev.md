@@ -278,7 +278,7 @@ To try it without Orange's canvas, run the developer test widget (it isn't in th
 
 The choices are saved in Orange's settings file (`~/.config/biolab.si/Orange.ini`, group `orange3-cloud`, keys `provider`, `idle_timeout` and `max_lifetime` in seconds, and for each provider `providers/<id>/account`, `region`, `zone`, `machine_type` and `disk_gb`; for Google Cloud the account is the project), never in workflows; `CloudSession.start_machine()` uses them unless it gets other values. The file holds no secrets. `ORANGE3_CLOUD_SETTINGS_FILE` points to another `.ini` file instead; the tests use it, so they don't touch your settings.
 
-The dialog's "Notify me about the hosted version" button opens the page in `HOSTED_INTEREST_URL` (`orangecontrib/cloud/settings.py`), or the URL in the key `hosted_interest_url` of the same group, which overrides it. Only `http`/`https` URLs count. With neither set (as now) the button is disabled and its tooltip says there is no sign-up page yet. The add-on sends no usage statistics.
+The dialog's "Notify me about the hosted version" button opens the page in `HOSTED_INTEREST_URL` (`orangecontrib/cloud/settings.py`), or the URL in the key `hosted_interest_url` of the same group, which overrides it. Only `http`/`https` URLs count. `HOSTED_INTEREST_URL` is the roadmap issue for a hosted service (issue 13), where people upvote it and subscribe to its updates. With neither set the button is disabled and its tooltip says there is no sign-up page yet. The add-on sends no usage statistics.
 
 ### Google Cloud sign-in
 

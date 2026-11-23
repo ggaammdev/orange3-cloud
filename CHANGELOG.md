@@ -2,6 +2,10 @@
 
 The changes in each release of orange3-cloud.
 
+## Unreleased
+
+- The Cloud settings dialog's "Notify me about the hosted version" button works: it opens the [roadmap issue for a hosted service](https://github.com/ggaammdev/orange3-cloud/issues/13), where you can upvote it and subscribe to its updates.
+
 ## 1.0.0
 
 The first release. Build workflows in Orange on your own computer as usual, and run the heavy computation on a machine in your own cloud account.

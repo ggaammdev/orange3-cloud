@@ -54,10 +54,11 @@ DISK_MIN_GB = 50
 DISK_MAX_GB = 2000
 
 #: The page where users can ask to hear about a hosted version, opened by the
-#: Cloud settings dialog's "Notify me about the hosted version" button. Empty
-#: until that page exists: the button is then disabled. The key
-#: ``hosted_interest_url`` in the add-on's settings group overrides it.
-HOSTED_INTEREST_URL = ""
+#: Cloud settings dialog's "Notify me about the hosted version" button: the
+#: roadmap issue for a hosted service, where people upvote it and subscribe to
+#: its updates. Empty disables the button. The key ``hosted_interest_url`` in
+#: the add-on's settings group overrides it.
+HOSTED_INTEREST_URL = "https://github.com/ggaammdev/orange3-cloud/issues/13"
 
 
 def settings_store() -> QSettings:

@@ -90,7 +90,9 @@ def test_dialog_starts_and_stops_the_machine(fake, tmp_path):
 
 
 def test_hosted_interest_button(fake, tmp_path, monkeypatch):
-    """The "Notify me" button opens the configured page; without one it's disabled."""
+    """The "Notify me" button opens the roadmap issue, or the page in the settings
+    store; without either it's disabled."""
+    from orangecontrib.cloud import settings
     from orangecontrib.cloud.gui import settings_dialog
 
     app = QApplication.instance() or QApplication([])
@@ -98,6 +100,10 @@ def test_hosted_interest_button(fake, tmp_path, monkeypatch):
     monkeypatch.setattr(settings_dialog.QDesktopServices, "openUrl", opened.append)
     session = CloudSession(fake, store=HandleStore(tmp_path / "machine.json"))
 
+    assert settings.hosted_interest_url().startswith(
+        "https://github.com/ggaammdev/orange3-cloud/issues/"
+    )
+    monkeypatch.setattr(settings, "HOSTED_INTEREST_URL", "")
     dialog = settings_dialog.CloudSettingsDialog(None, session)
     assert not dialog.hosted_button.isEnabled()
     assert "no sign-up page" in dialog.hosted_button.toolTip()

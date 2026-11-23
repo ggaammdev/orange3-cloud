@@ -334,8 +334,8 @@ class CloudSettingsDialog(QDialog):
         self.hosted_button.setAutoDefault(False)
         if self.hosted_interest_url:
             self.hosted_button.setToolTip(
-                "Opens a page in your browser where you can ask to hear when a hosted "
-                "version (no cloud account of your own) is available."
+                "Opens a page in your browser where you can show interest in a hosted "
+                "version (no cloud account of your own) and hear when it is available."
             )
         else:
             self.hosted_button.setEnabled(False)
