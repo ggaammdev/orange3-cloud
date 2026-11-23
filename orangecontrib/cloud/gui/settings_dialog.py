@@ -54,7 +54,7 @@ from AnyQt.QtWidgets import (
 )
 from AnyQt.sip import isdeleted
 
-from orangecontrib.cloud.client.costs import format_price, format_usd
+from orangecontrib.cloud.client.costs import format_price, format_usd, machine_seconds
 from orangecontrib.cloud.client.providers.registry import registered_providers
 from orangecontrib.cloud.client.session import CloudSession, SessionState
 from orangecontrib.cloud.gui.provider_page import ProviderPage, make_page
@@ -613,7 +613,7 @@ class CloudSettingsDialog(QDialog):
             left.setText("—")
             return
         elapsed = time.monotonic() - self._info_time
-        uptime.setText(format_duration(info.uptime_seconds + elapsed))
+        uptime.setText(format_duration(self._running_seconds(info.uptime_seconds + elapsed)))
         if info.time_left_seconds is None:
             left.setText("no limit" if not info.jobs_running else "no limit while jobs run")
             return
@@ -624,6 +624,19 @@ class CloudSettingsDialog(QDialog):
             else "maximum lifetime"
         )
         left.setText(f"{format_duration(info.time_left_seconds - elapsed)} ({reason})")
+
+    def _running_seconds(self, server_uptime: float) -> float:
+        """How long the machine has run: since it was created, as "Cost so
+        far" counts, else (no creation time) the server's uptime."""
+        handle = self.session.handle
+        created = machine_seconds(handle) if handle is not None else None
+        self.detail_labels["uptime"].setToolTip(
+            "Since the machine was created, as the cost so far counts; its server "
+            f"started {format_duration(server_uptime)} ago."
+            if created is not None
+            else "Since the machine's server started."
+        )
+        return created if created is not None else server_uptime
 
     def _update_cost(self) -> None:
         """The machine's price and what it has cost since it was created."""

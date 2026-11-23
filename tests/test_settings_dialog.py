@@ -2,6 +2,7 @@
 and stops a (fake, in-process) machine and follows the session live; its
 choices are saved in the settings store, which the session uses."""
 
+import datetime
 import os
 import time
 
@@ -65,6 +66,13 @@ def test_dialog_starts_and_stops_the_machine(fake, tmp_path):
     assert dialog.detail_labels["price"].text().startswith("$0.78/h")
     assert "$" in dialog.detail_labels["cost"].text()  # e.g. "under $0.0001"
     session.machine_costs.prices.clear()
+    # Running for: since the machine was created, the start the cost counts from.
+    created = session.handle.created_at
+    two_hours_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=2)
+    session.handle.created_at = two_hours_ago.isoformat()
+    dialog._update_times()
+    assert dialog.detail_labels["uptime"].text() == "2 h 0 min"
+    session.handle.created_at = created
     texts = " ".join(label.text() for label in dialog.findChildren(QLabel))
     assert session.handle.token not in texts
     view = dialog.versions_view
