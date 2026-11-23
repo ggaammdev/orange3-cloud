@@ -150,6 +150,10 @@ You pay your cloud provider directly, at its prices. The add-on itself is free.
 - **The machine copies your environment.** Orange, your add-ons and the packages they need must be installable from the Python Package Index at your exact versions. Packages installed from a local folder can't be copied; Cloud settings lists them.
 - **One machine at a time.** No GPUs or ARM machines.
 
+## Roadmap
+
+What may come next is in the [roadmap issues](https://github.com/ggaammdev/orange3-cloud/issues?q=label%3Aroadmap): Windows, Linux and Intel Macs, ARM, Spot and GPU machines, signing in from Orange, more widgets, budget limits and a hosted service. Add a thumbs-up to the ones you want most, or comment with how you'd use them: that helps decide what comes first.
+
 ## Help and feedback
 
 - [docs/setup-gcp.md](docs/setup-gcp.md), [docs/setup-aws.md](docs/setup-aws.md) and [docs/setup-azure.md](docs/setup-azure.md): setting up Google Cloud, AWS or Azure, and troubleshooting.
