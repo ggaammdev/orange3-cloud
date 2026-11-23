@@ -45,7 +45,7 @@ The [taxi demo](docs/demo-taxi.md) explores and models every yellow taxi trip in
 
    If your account can run only Small for now, open [examples/taxi-demo-january.ows](examples/taxi-demo-january.ows) instead: the same workflow on the 3.5 million trips of January. On a Small machine, it takes about 3 minutes after the machine has started, for about $0.02.
 
-3. **Start a machine.** Double-click Cloud File and click **Cloud settings…** (every Cloud widget has this button). Choose your cloud: **Google Cloud**, **AWS** or **Azure**. Its page shows your sign-in, and the project (Google Cloud), profile (AWS) or subscription (Azure) and the region you chose in its setup guide. Choose the machine size **Medium** (16 vCPUs, 64 GB), or **Small** for January. When the setup check passes, click **Start**. The machine is ready in one to two minutes.
+3. **Start a machine.** Double-click Cloud File and click **Cloud settings…** (every Cloud widget has this button). Choose your cloud: **Google Cloud**, **AWS** or **Azure**. Its page shows your sign-in, and the project (Google Cloud), profile (AWS) or subscription (Azure) and the region you chose in its setup guide. Choose the machine size **Medium** (16 vCPUs, 64 GB), or **Small** for January. When the setup check passes, click **Start**. The machine is ready in about two minutes.
 
    ![The Cloud settings dialog with Google Cloud chosen](docs/images/cloud-settings-gcp.png)
 

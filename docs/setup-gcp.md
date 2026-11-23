@@ -96,7 +96,7 @@ Click **Start**. The dialog shows the steps:
 4. installing Python, Orange and your packages at your exact versions,
 5. starting the server.
 
-It usually takes one to one and a half minutes. Then the Cloud widgets say "Connected", and the dialog shows the machine's price, its cost so far and the time until it stops.
+It usually takes about two minutes. Then the Cloud widgets say "Connected", and the dialog shows the machine's price, its cost so far and the time until it stops.
 
 If you close Orange, the Cloud widgets cancel their jobs, and the machine keeps running until its idle time is over. When you open Orange again while it runs, Orange connects to it again.
 

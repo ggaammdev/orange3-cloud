@@ -56,6 +56,9 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/ggaammdev/orange3-cloud"
+Documentation = "https://github.com/ggaammdev/orange3-cloud#readme"
+Issues = "https://github.com/ggaammdev/orange3-cloud/issues"
+Changelog = "https://github.com/ggaammdev/orange3-cloud/blob/main/CHANGELOG.md"
 
 [project.entry-points."orange3.addon"]
 cloud = "orangecontrib.cloud"
