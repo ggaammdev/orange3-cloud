@@ -9,6 +9,9 @@ Below the choices, the setup checker
 in the project before a machine can start, with an "Enable APIs" button that
 asks before turning on the missing APIs. The dialog's Start button needs the
 check to pass (:attr:`GoogleCloudPage.setup_ok`, signal ``setupChanged``).
+Each project chosen gets its own check, also when its regions can't be
+listed (a new project's Compute Engine API is off until "Enable APIs", which
+then lists them).
 
 Nothing here runs until the page is first shown. Slow calls (finding
 ``gcloud``, reading the credentials, listing projects and zones) run on a
@@ -43,6 +46,7 @@ from orangecontrib.cloud.client.providers import gcp_account, gcp_setup
 from orangecontrib.cloud.client.providers.base import ClusterProvider, ProviderError
 from orangecontrib.cloud.client.providers.gcp_account import (
     GCLOUD_INSTALL_URL,
+    ApiDisabledError,
     GcloudDefaults,
     NotSignedInError,
     Project,
@@ -203,7 +207,7 @@ class GoogleCloudPage(AccountPage):
         self._started = True
         self._regions.clear()
         self._zone_types.clear()
-        self._checked_for = None
+        self._clear_setup()
         self._set_message("Checking your Google Cloud account…")
         self._update_enabled(loading=True)
         self._submit(check_account, self._on_account)
@@ -246,9 +250,12 @@ class GoogleCloudPage(AccountPage):
         def done(_: Any, error: BaseException | None) -> None:
             if error is not None:
                 self._set_message(str(error), error=True)
-            else:
-                self._set_message("")
-            self.check_setup()
+                self.check_setup()
+                return
+            self._set_message("")
+            # The regions can be listed now (Compute Engine API); then the check runs.
+            self._regions.pop(project, None)
+            self._project_changed()
 
         self._submit(
             lambda: gcp_setup.enable_apis(gcp_setup.GoogleSetupApi(credentials), project, missing),
@@ -269,8 +276,6 @@ class GoogleCloudPage(AccountPage):
         else:
             self._set_message("")
         self._fill_projects(info)
-        if not info.signed_in or not self.project:
-            self._schedule_check()
 
     def _show_account(self, info: AccountInfo | None) -> None:
         if info is None:
@@ -332,13 +337,17 @@ class GoogleCloudPage(AccountPage):
         self._project_changed()
 
     def _project_changed(self) -> None:
+        """List the chosen project's regions, then check its setup. The
+        shown check is another project's (or out of date), so it goes."""
         project = self.project
         if project != self.provider_settings.account:
             self.provider_settings.account = project
             self._save()
         self.region_combo.clear()
         self.zone_combo.clear()
+        self._clear_setup()
         if not project or self.credentials is None:
+            self._schedule_check()  # says what's missing: the sign-in or a project
             self._update_enabled()
             return
         if project in self._regions:
@@ -351,13 +360,26 @@ class GoogleCloudPage(AccountPage):
             if self.project != project:
                 return  # the user chose another project meanwhile
             if error is not None:
-                self._set_message(str(error), error=True)
+                self._on_regions_failed(error)
                 return
             self._set_message("")
             self._regions[project] = regions or []
             self._fill_regions(project)
 
         self._submit(lambda: gcp_account.list_regions(credentials, project), done)
+
+    def _on_regions_failed(self, error: BaseException) -> None:
+        """Say why there are no regions, and check the setup, which offers
+        "Enable APIs…" if the Compute Engine API is off."""
+        if isinstance(error, ApiDisabledError):
+            self._set_message(
+                "The Compute Engine API is off in this project: click Enable APIs… below.",
+                error=True,
+                details=str(error),
+            )
+        else:
+            self._set_message(str(error), error=True)
+        self.check_setup()
 
     def _fill_regions(self, project: str) -> None:
         regions = self._regions.get(project, [])
@@ -393,14 +415,12 @@ class GoogleCloudPage(AccountPage):
         self._zone_changed()
 
     def _zone_changed(self) -> None:
-        if not self.region or not self.zone:
-            self._update_enabled()
-            return
-        chosen = self.provider_settings
-        if (chosen.region, chosen.zone) != (self.region, self.zone):
-            chosen.region, chosen.zone = self.region, self.zone
-            self._save()
-        self._list_machine_types()
+        if self.region and self.zone:
+            chosen = self.provider_settings
+            if (chosen.region, chosen.zone) != (self.region, self.zone):
+                chosen.region, chosen.zone = self.region, self.zone
+                self._save()
+            self._list_machine_types()
         # The quotas are per region; a new zone in the same region changes nothing.
         self._schedule_check_if_changed()
         self._update_enabled()

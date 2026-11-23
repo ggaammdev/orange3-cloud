@@ -18,7 +18,9 @@ to sign in to (e.g. :mod:`~orangecontrib.cloud.gui.gcp_page`).
   :class:`~orangecontrib.cloud.client.providers.setup_checks.Check`) runs
   in the background when what it depends on changes
   (:meth:`AccountPage.setup_key`) and on "Check again". The dialog's Start
-  waits until everything passed (:attr:`AccountPage.ready`).
+  waits until everything passed (:attr:`AccountPage.ready`). Another account
+  (project, profile or subscription) or Reload drops the shown result
+  (:meth:`AccountPage._clear_setup`), so Start waits for the new check.
 * A message line for progress and errors.
 """
 
@@ -124,11 +126,14 @@ class AccountPage(ProviderPage):
         self.setup_label = QLabel(wordWrap=True, openExternalLinks=True)
         self.setup_label.setTextFormat(Qt.TextFormat.RichText)
         self.setup_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
+        #: Buttons that fix what the check found (shown by :meth:`_show_checks`).
+        self._fix_buttons: tuple[QPushButton, ...] = ()
         session.signInFinished.connect(self._on_sign_in_finished)
 
     def add_setup_rows(self, form: QFormLayout, *buttons: QPushButton) -> None:
-        """Add the message line and the setup check (with ``buttons`` next to
-        "Check again") to ``form``."""
+        """Add the message line and the setup check (with ``buttons``, which
+        fix what the check found, next to "Check again") to ``form``."""
+        self._fix_buttons = buttons
         form.addRow(self.message_label)
         row = QHBoxLayout()
         row.addWidget(self.setup_title, 1)
@@ -219,6 +224,21 @@ class AccountPage(ProviderPage):
             self.setup_label.setToolTip("")
         self.setup_label.setText(text)
 
+    def _clear_setup(self) -> None:
+        """Drop the shown check (it was for another account, or is out of
+        date): Start waits until a new check passes."""
+        self._check_timer.stop()
+        self._check_serial += 1  # results of a running check are now stale
+        self._checked_for = None
+        self.setup_title.setText("<b>Setup check</b>")
+        self.setup_label.setText("")
+        self.setup_label.setToolTip("")
+        for button in self._fix_buttons:
+            button.setVisible(False)
+        if self.setup_checks is not None:
+            self.setup_checks = None
+            self.setupChanged.emit()
+
     def _schedule_check(self) -> None:
         self._check_serial += 1  # results of a running check are now stale
         self._checked_for = self.setup_key()
@@ -305,8 +325,9 @@ class AccountPage(ProviderPage):
 
     # ------------------------------------------------------------------
 
-    def _set_message(self, text: str, error: bool = False) -> None:
+    def _set_message(self, text: str, error: bool = False, details: str = "") -> None:
         self.message_label.setText(text)
+        self.message_label.setToolTip(details)
         self.message_label.setStyleSheet(ERROR_STYLE if error else "")
         self.message_label.setVisible(bool(text))
 

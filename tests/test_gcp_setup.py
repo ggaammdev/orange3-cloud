@@ -14,9 +14,11 @@ import pytest
 from AnyQt.QtWidgets import QApplication, QMessageBox
 from test_gcp_account import fake_google, spin  # noqa: F401 - fixture
 
-from orangecontrib.cloud.client.providers import gcp_setup
+from orangecontrib.cloud.client.providers import gcp_account, gcp_setup
 from orangecontrib.cloud.client.providers.base import ProviderError
-from orangecontrib.cloud.client.providers.gcp_setup import ApiDisabledError, GoogleSetupApi
+from orangecontrib.cloud.client.providers.gcp_account import ApiDisabledError
+from orangecontrib.cloud.client.providers.gcp_setup import GoogleSetupApi
+from orangecontrib.cloud.client.providers.gcp_vm import MACHINE_TYPES
 from orangecontrib.cloud.client.providers.setup_checks import Status, all_passed
 
 CREDENTIALS = object()
@@ -236,6 +238,73 @@ def test_dialog_shows_checks_and_enables_apis(fake_google, fake, tmp_path, monke
     assert page.enable_button.isHidden()
     assert "The project is ready" in page.setup_label.text()
     assert "Permissions for machines" in page.setup_label.toolTip()
+    dialog.close()
+    page.shutdown()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="the fake gcloud is a shell script")
+def test_dialog_checks_a_new_project_with_compute_off(fake_google, fake, tmp_path, monkeypatch):  # noqa: F811
+    """From a ready project to a new one whose Compute Engine API is off:
+    Start waits, the check offers "Enable APIs…", and enabling lists the
+    regions without Reload."""
+    from orangecontrib.cloud.client.session import CloudSession, HandleStore
+    from orangecontrib.cloud.gui.settings_dialog import CloudSettingsDialog
+    from orangecontrib.cloud.settings import CloudSettings
+
+    projects = {"proj-a": FakeProject(), "proj-b": FakeProject(apis=("storage",))}
+    listed = []
+
+    def list_regions(credentials, project):
+        listed.append(project)
+        projects[project]._compute()
+        return [gcp_account.Region("us-central1", ("us-central1-a",))]
+
+    api = gcp_setup.SetupApi()
+    for name in (
+        "billing_enabled",
+        "enabled_services",
+        "enable_services",
+        "region_quotas",
+        "project_quotas",
+        "granted_permissions",
+    ):
+        # Each call goes to the FakeProject of its project.
+        setattr(api, name, lambda p, *a, _n=name: getattr(projects[p], _n)(p, *a))
+    monkeypatch.setattr(gcp_setup, "GoogleSetupApi", lambda credentials: api)
+    monkeypatch.setattr(gcp_account, "list_regions", list_regions)
+    sizes = {t.name for t in MACHINE_TYPES}
+    monkeypatch.setattr(gcp_account, "available_machine_types", lambda c, p, z: sizes)
+    monkeypatch.setattr(QMessageBox, "question", lambda *a: QMessageBox.StandardButton.Yes)
+    fake_google.marker.write_text("signed in")
+
+    app = QApplication.instance() or QApplication([])
+    CloudSettings(provider="gcp").save()
+    dialog = CloudSettingsDialog(session=CloudSession(fake, store=HandleStore(tmp_path / "m")))
+    dialog.show()
+    page = dialog.pages["gcp"]
+    spin(app, lambda: page.setup_ok and not page.busy)
+    assert page.project == "proj-a" and dialog.start_button.isEnabled()
+
+    # The new project: the ready result is gone at once, and Start waits.
+    page.project_combo.setCurrentIndex(1)
+    page.project_combo.activated.emit(1)
+    assert page.setup_checks is None and page.setup_label.text() == ""
+    assert not dialog.start_button.isEnabled()
+    spin(app, lambda: page.setup_checks is not None and not page.busy)
+    assert page.region_combo.count() == 0 and not page.setup_ok
+    assert not dialog.start_button.isEnabled()
+    assert page.message_label.text().startswith("The Compute Engine API is off")
+    assert "has not been used" in page.message_label.toolTip()
+    assert gcp_setup.missing_apis(page.setup_checks) == ("compute.googleapis.com",)
+    assert not page.enable_button.isHidden()
+
+    # Enabling lists the regions and checks again, without Reload.
+    page.enable_button.click()
+    spin(app, lambda: page.setup_ok and not page.busy)
+    assert projects["proj-b"].enabled_calls == [["compute.googleapis.com"]]
+    assert (page.region, page.zone) == ("us-central1", "us-central1-a")
+    assert listed.count("proj-b") == 2 and not page.message_label.text()
+    assert page.enable_button.isHidden() and dialog.start_button.isEnabled()
     dialog.close()
     page.shutdown()
 

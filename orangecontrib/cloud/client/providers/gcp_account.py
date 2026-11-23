@@ -34,6 +34,7 @@ __all__ = [
     "DEFAULT_REGION",
     "DEFAULT_ZONE",
     "GCLOUD_INSTALL_URL",
+    "ApiDisabledError",
     "GcloudDefaults",
     "NotSignedInError",
     "Project",
@@ -61,6 +62,10 @@ DEFAULT_ZONE = "us-central1-a"
 
 class NotSignedInError(ProviderError):
     """No application-default credentials, or they no longer work."""
+
+
+class ApiDisabledError(ProviderError):
+    """The API that a call needs isn't enabled in the project."""
 
 
 # ----------------------------------------------------------------------
@@ -239,7 +244,7 @@ def _api_error(exc: Exception, what: str, project: str = "") -> ProviderError:
         message = getattr(exc, "message", "") or str(exc)
         if "SERVICE_DISABLED" in reasons or "has not been used in project" in message:
             where = f" in project {project}" if project else ""
-            return ProviderError(f"Couldn't {what}: the API isn't enabled{where}. {message}")
+            return ApiDisabledError(f"Couldn't {what}: the API isn't enabled{where}. {message}")
         if isinstance(exc, (api.PermissionDenied, api.Forbidden)):
             where = f" in project {project}" if project else ""
             return ProviderError(f"Couldn't {what}: no permission{where}. {message}")

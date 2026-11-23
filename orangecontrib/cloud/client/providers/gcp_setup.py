@@ -23,14 +23,13 @@ from typing import Any, NamedTuple
 from urllib.parse import urlencode
 
 from orangecontrib.cloud.client.providers.base import ProviderError
-from orangecontrib.cloud.client.providers.gcp_account import NotSignedInError
+from orangecontrib.cloud.client.providers.gcp_account import ApiDisabledError, NotSignedInError
 from orangecontrib.cloud.client.providers.gcp_vm import MACHINE_TYPES
 from orangecontrib.cloud.client.providers.setup_checks import Check, Status, not_checked
 
 __all__ = [
     "PERMISSIONS",
     "REQUIRED_APIS",
-    "ApiDisabledError",
     "GoogleSetupApi",
     "SetupApi",
     "cpu_quota_metric",
@@ -108,10 +107,6 @@ def _console(path: str, project: str, **params: str) -> str:
 
 # ----------------------------------------------------------------------
 # Google's APIs
-
-
-class ApiDisabledError(ProviderError):
-    """The API that a call needs isn't enabled in the project."""
 
 
 class SetupApi:

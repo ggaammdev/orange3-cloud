@@ -176,7 +176,8 @@ def fake_aws(tmp_path, monkeypatch):
     offered = {"us-east-1": sizes, "eu-west-1": sizes - {"r7i.24xlarge"}}
     monkeypatch.setattr(aws_account, "offered_instance_types", lambda s, region: offered[region])
     # The checker's calls go to a fake account (tested in test_aws_setup).
-    monkeypatch.setattr(aws_setup, "BotoSetupApi", lambda session: FakeAccount())
+    regions = ("eu-west-1", "us-east-1")
+    monkeypatch.setattr(aws_setup, "BotoSetupApi", lambda session: FakeAccount(regions=regions))
     return SimpleNamespace(marker=marker, script=script)
 
 
@@ -236,8 +237,12 @@ def test_dialog_lists_profiles_and_regions(fake_aws, fake, tmp_path):
     # Choices are saved at once in the settings store, never in a workflow.
     page.region_combo.setCurrentText("eu-west-1")
     page.region_combo.activated.emit(page.region_combo.currentIndex())
+    spin(app, lambda: page.setup_ok and not page.busy)
     page.profile_combo.setCurrentIndex(1)
     page.profile_combo.activated.emit(1)
+    # The check was the other profile's: it goes at once, and Start waits.
+    assert page.setup_checks is None and page.setup_label.text() == ""
+    assert not dialog.start_button.isEnabled()
     spin(app, lambda: not page.busy and page.account_label.text().startswith("other"))
     # A size eu-west-1 doesn't offer is hidden.
     assert picker.combo.count() == 8 and picker.combo.findData("r7i.24xlarge") == -1

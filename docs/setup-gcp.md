@@ -41,7 +41,7 @@ The add-on signs in to Google Cloud with Google's `gcloud` command-line tool.
 
    This runs `gcloud auth application-default login`, which stores the sign-in on your computer, where Google's tools keep it. You can also run that command in a terminal.
 
-4. Choose your **project**, a **region** and a **zone**. Choose a region near you or near your data, for example `us-central1`, `europe-west4` or `asia-east1`. Prices differ a little between regions. The dialog shows only the zones that are up.
+4. Choose your **project**, a **region** and a **zone**. Choose a region near you or near your data, for example `us-central1`, `europe-west4` or `asia-east1`. Prices differ a little between regions. The dialog shows only the zones that are up. In a new project, the regions are listed once the Compute Engine API is on: the dialog says so, and **Enable APIs…** in the setup check (step 5) turns it on.
 
 ![The Google Cloud page of Cloud settings](images/cloud-settings-gcp.png)
 
@@ -53,7 +53,7 @@ Below the project, the dialog checks everything a machine needs and shows what i
 |---|---|
 | Signed in, a project chosen | Click **Sign in with Google** and choose a project. |
 | Billing enabled | Link the project to a billing account (step 1). |
-| Compute Engine and Cloud Storage APIs | Click **Enable APIs…**. Orange asks first, then enables them, which takes a minute or two. |
+| Compute Engine and Cloud Storage APIs | Click **Enable APIs…**. Orange asks first, then enables them, which takes a minute or two, and lists the regions. |
 | CPU quota in the region | Each machine family has a quota of vCPUs per region. If it's too low, choose a smaller size or another region, or request more (see below). |
 | Global CPU quota (`CPUS_ALL_REGIONS`) | New projects often have a low global quota. Request more (see below). |
 | Permissions | You need to manage machines, firewall rules and storage buckets in the project. The project's owner has these permissions. Otherwise ask the owner for the Editor role, or for Compute Admin, Storage Admin and Service Account User. |
@@ -127,6 +127,7 @@ All the add-on's machines have the label `orange3-cloud=true`, so you can also f
 
 - **"gcloud wasn't found"**: install the Google Cloud CLI (step 3) and open Cloud settings again.
 - **"Not signed in"** or a sign-in that stopped working: click **Sign in with Google** (or **Sign in again**).
+- **Region and Zone stay empty in a new project** (version 1.0.0): click **Check again**, then **Enable APIs…**, then **Reload**. Fixed in 1.0.1.
 - **A quota check fails**: choose a smaller size or another region, or request more quota (step 5). On a free trial account, upgrade it.
 - **The machine doesn't connect**: your IP address may have changed, or a VPN or company network may block port 8443. The add-on updates the firewall rule when your address changes; try again after leaving the VPN. The dialog's messages show where the start stopped.
 - **"Not enough memory"** or a warning in Cloud File: choose a larger size. Cloud File's estimate suggests one.

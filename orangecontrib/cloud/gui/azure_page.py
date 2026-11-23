@@ -230,7 +230,7 @@ class AzurePage(AccountPage):
     def refresh(self) -> None:
         """Check az and the sign-in, and list the subscriptions and regions again."""
         self._started = True
-        self._checked_for = None
+        self._clear_setup()  # the shown check may be another subscription's
         self._account_request += 1
         request, saved = self._account_request, self.provider_settings.account
         self._set_message("Checking your Azure sign-in…")

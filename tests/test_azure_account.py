@@ -270,8 +270,12 @@ def test_dialog_lists_subscriptions_and_regions(fake_az, fake, tmp_path, monkeyp
     page.reload_button.click()
     spin(app, lambda: not page.busy and ("sub-2", "westeurope") in page._region_sizes)
     assert fake_az.listed[-1] == ("sub-2", "westeurope", True)
+    spin(app, lambda: page.setup_ok and not page.busy)
     page.subscription_combo.setCurrentIndex(0)
     page.subscription_combo.activated.emit(0)
+    # The check was the other subscription's: it goes at once, and Start waits.
+    assert page.setup_checks is None and page.setup_label.text() == ""
+    assert not dialog.start_button.isEnabled()
     spin(app, lambda: not page.busy and page.subscription_id == "sub-1" and page.setup_checks)
     store = QSettings(os.environ["ORANGE3_CLOUD_SETTINGS_FILE"], QSettings.Format.IniFormat)
     assert store.value("orange3-cloud/provider") == "azure"
