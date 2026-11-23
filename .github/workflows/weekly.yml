@@ -52,7 +52,7 @@ jobs:
           EOF
           cat "$GITHUB_OUTPUT"
 
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: ${{ steps.versions.outputs.python }}
           activate-environment: true
