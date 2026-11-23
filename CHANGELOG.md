@@ -2,13 +2,14 @@
 
 The changes in each release of orange3-cloud.
 
-## Unreleased
+## 1.0.1
 
 - The Cloud settings dialog's "Notify me about the hosted version" button works: it opens the [roadmap issue for a hosted service](https://github.com/ggaammdev/orange3-cloud/issues/13), where you can upvote it and subscribe to its updates.
 - Orange's Add-ons dialog lists the add-on as "Cloud".
 - Google Cloud: choosing a project checks its setup at once, also when its regions can't be listed. In a new project whose Compute Engine API is off, Cloud settings says so and offers **Enable APIs…**, and Start waits for the new project's check instead of keeping the previous project's result. AWS and Azure drop the previous profile's or subscription's result the same way.
 - Google Cloud: after **Enable APIs…**, the project's regions and zones are listed without clicking Reload.
 - Cloud settings: "Running for" counts from the machine's creation, like "Cost so far", instead of from its server's start.
+- Cloud settings: while a new setup check waits (after choosing another region or size), the previous result is no longer shown as "ready".
 
 ## 1.0.0
 
