@@ -70,7 +70,7 @@ QT_QPA_PLATFORM=offscreen .venv/bin/pytest     # tests (add -m slow for the slow
 scripts/local-machine.sh up|status|logs|down   # the machine in Docker, at https://localhost:8443
 ```
 
-CI runs the style check, the formatting check, the import rules and the tests on Ubuntu with Python 3.10, the oldest version the add-on supports. Code in `orangecontrib/` must run on Python 3.10. `docker/bootstrap.py` and `docker/boot_platforms.py` run on the image's own Python 3.13. A weekly check runs the tests with the newest Orange on the newest Python it supports, the image workflow scans the image with Trivy, and Dependabot proposes updates. The release workflow (`release.yml`, started by hand) runs the same checks, then publishes a version to PyPI, the public image and GitHub releases; with `publish` off it only checks and builds.
+CI runs the style check, the formatting check, the import rules and the tests on Ubuntu with Python 3.10, the oldest version the add-on supports. Code in `orangecontrib/` must run on Python 3.10. `docker/bootstrap.py` and `docker/boot_platforms.py` run on the image's own Python 3.13. A weekly check runs the tests with the newest Orange on the newest Python it supports, the image workflow scans the image with Trivy, and Dependabot proposes updates. The release workflow (`release.yml`) runs when a version tag `vX.Y.Z` is pushed: the same checks, then, after the maintainer approves the `release` environment's deployment, it publishes the version to the public image, PyPI and GitHub releases. Started by hand, it is a trial that only checks and builds.
 
 ## Architecture rules
 

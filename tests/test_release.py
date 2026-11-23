@@ -9,6 +9,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+import yaml
 
 from orangecontrib.cloud.client.providers.base import PUBLIC_IMAGE
 
@@ -47,6 +48,8 @@ def test_publishing_needs_the_committed_version_and_a_changelog(tmp_path):
     (tmp_path / "pyproject.toml").write_text('[project]\nversion = "1.2.3"\n')
     with pytest.raises(release.ReleaseError, match="X.Y.Z"):
         release.prepare(tmp_path, "1.2.3rc1", publish=True)
+    with pytest.raises(release.ReleaseError, match="X.Y.Z"):
+        release.prepare(tmp_path, "1.2.3\n", publish=True)
     with pytest.raises(release.ReleaseError, match="not 1.2.4"):
         release.prepare(tmp_path, "1.2.4", publish=True)
     with pytest.raises(release.ReleaseError, match="no section"):
@@ -82,3 +85,50 @@ def test_release_image_is_the_public_image():
     """The workflow pushes the image that released add-ons run."""
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text()
     assert f"IMAGE: {PUBLIC_IMAGE}\n" in workflow
+
+
+def test_published_versions_are_refused():
+    """A release stops before it publishes if PyPI or GitHub has the version,
+    or if either can't be asked."""
+    asked = []
+
+    def status(answers):
+        def get(url, token):
+            asked.append((url, token))
+            return answers["pypi" if "pypi.org" in url else "github"]
+
+        return get
+
+    release.check_unpublished("1.2.3", "o/r", "t", status({"pypi": 404, "github": 404}))
+    assert asked == [
+        ("https://pypi.org/pypi/orange3-cloud/1.2.3/json", None),
+        ("https://api.github.com/repos/o/r/releases/tags/v1.2.3", "t"),
+    ]
+    with pytest.raises(release.ReleaseError, match="PyPI has 1.2.3"):
+        release.check_unpublished("1.2.3", "o/r", None, status({"pypi": 200, "github": 404}))
+    with pytest.raises(release.ReleaseError, match="GitHub releases has 1.2.3"):
+        release.check_unpublished("1.2.3", "o/r", None, status({"pypi": 404, "github": 200}))
+    with pytest.raises(release.ReleaseError, match="Couldn't check GitHub releases.*HTTP 403"):
+        release.check_unpublished("1.2.3", "o/r", None, status({"pypi": 404, "github": 403}))
+
+
+def test_one_approval_gates_publishing_and_trials_need_none():
+    """The image job, the first that publishes, runs only for a tag and in the
+    "release" environment, and PyPI and the release need it; a trial builds the
+    same image in a job without an environment."""
+    jobs = yaml.safe_load((ROOT / ".github" / "workflows" / "release.yml").read_text())["jobs"]
+    publishing = jobs["image"]
+    trial = jobs["image-trial"]
+    assert publishing["environment"] == "release"
+    assert publishing["if"] == "github.event_name == 'push'"
+    assert "environment" not in trial
+    assert trial["if"] == "github.event_name == 'workflow_dispatch'"
+    assert "image" in jobs["pypi"]["needs"] and "pypi" in jobs["release"]["needs"]
+
+    def build_inputs(job):
+        (step,) = [s for s in job["steps"] if s.get("uses", "").startswith("docker/build-push")]
+        return dict(step["with"])
+
+    published, tried = build_inputs(publishing), build_inputs(trial)
+    assert (published.pop("push"), tried.pop("push")) == (True, False)
+    assert published == tried

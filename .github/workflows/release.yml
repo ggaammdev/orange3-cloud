@@ -1,56 +1,66 @@
 name: Release
 
-# Publishes a version of orange3-cloud. Started by hand, on main:
+# Publishes a version of orange3-cloud when its tag is pushed:
 #
-#   gh workflow run release.yml -f version=X.Y.Z -f publish=true
+#   git tag vX.Y.Z && git push origin vX.Y.Z
 #
-# Starting it with publish on is the approval to publish. It
+# The version is the tag without the "v". The workflow
 #   1. runs the CI checks (ci.yml),
-#   2. builds the sdist and wheel, and checks that neither contains internal
+#   2. checks that the version can be released: the tag's commit is on main,
+#      pyproject.toml has the version, CHANGELOG.md has a section for it, and
+#      neither PyPI nor GitHub releases have it yet (scripts/release.py); then
+#      builds the sdist and wheel, and checks that neither contains internal
 #      files (scripts/release.py check-dist) and that PyPI can show them,
-#   3. builds the machine image for linux/amd64 and linux/arm64 and pushes it
+#   3. waits for the approval: the image job runs in the "release" environment,
+#      whose required reviewer approves the deployment on the run's page,
+#   4. builds the machine image for linux/amd64 and linux/arm64 and pushes it
 #      to the public ghcr.io registry as :X.Y.Z and :latest,
-#   4. uploads the sdist and wheel to PyPI with Trusted Publishing: PyPI trusts
+#   5. uploads the sdist and wheel to PyPI with Trusted Publishing: PyPI trusts
 #      this workflow of this repository, so no token is stored anywhere,
-#   5. tags the commit vX.Y.Z and creates the GitHub release with the
-#      version's section of CHANGELOG.md, the sdist and the wheel.
+#   6. creates the GitHub release for the tag, with the version's section of
+#      CHANGELOG.md, the sdist and the wheel.
 #
 # The order: everything is built and checked before anything is published.
+# The image is the first thing published, so its job holds the one approval:
+# PyPI and the release need it, so nothing is published before the approval.
 # The image goes out before PyPI because a pushed image can be pushed again,
 # while a version uploaded to PyPI can never be replaced, and once it is on
 # PyPI users get it. (A released add-on's machine pulls the public image of
 # its version and installs orange3-cloud[server]==X.Y.Z from PyPI at boot.)
-# The tag and the release come last, when the version is out. If a publishing
-# job fails, fix the cause and use "Re-run failed jobs".
+# The release comes last, when the version is out. If a publishing job fails,
+# fix the cause and use "Re-run failed jobs".
 #
-# With publish off (the default), it runs steps 1 and 2 and builds the image
-# for both architectures without pushing it: nothing is published. Any PEP 440
-# version is allowed then (a trial such as 1.0.0rc1); it is written into
-# pyproject.toml for the build, and the sdist and wheel are kept as the run's
-# artifact "dist". With publish on, the version must be X.Y.Z, equal to
-# pyproject.toml's, with a section in CHANGELOG.md, and not tagged yet.
+# Started by hand, the workflow is a trial and publishes nothing; publishing
+# happens only from a tag:
+#
+#   gh workflow run release.yml -f version=1.0.1rc1
+#
+# A trial runs steps 1 and 2 (without the checks that need the tag, the
+# version in pyproject.toml and the changelog) and builds the image for both
+# architectures in a job of its own, image-trial, which has no environment:
+# the environment allows only version tags, and a trial never waits for an
+# approval. Any PEP 440 version is allowed; it is written into pyproject.toml
+# for the build, and the sdist and wheel are kept as the run's artifact "dist".
 
 on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
     inputs:
       version:
-        description: "Version: X.Y.Z (with publish off, any PEP 440 version, e.g. 1.0.0rc1)"
+        description: "Version for a trial (any PEP 440 version, e.g. 1.0.1rc1); a trial publishes nothing"
         required: true
         type: string
-      publish:
-        description: "Publish to PyPI, ghcr.io and GitHub releases (off: check and build only)"
-        type: boolean
-        default: false
 
 permissions: {}
 
+# Releases run one at a time. Trials publish nothing and have their own queue,
+# so they never wait for, or cancel, a release waiting for its approval.
 concurrency:
-  group: release
+  group: release-${{ github.event_name }}
   cancel-in-progress: false
 
 env:
-  VERSION: ${{ inputs.version }}
-  PUBLISH: ${{ inputs.publish }}
   # The public machine image: PUBLIC_IMAGE in orangecontrib/cloud/client/providers/base.py.
   IMAGE: ghcr.io/ggaammdev/orange3-cloud-machine
 
@@ -65,37 +75,58 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # the whole history, to check that the tag's commit is on main
 
       - uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: "3.12"
 
-      - name: Check that the version can be released
-        if: inputs.publish
+      - name: Check that the tag's commit is on main
+        if: github.event_name == 'push'
         run: |
-          if [ "$GITHUB_REF" != refs/heads/main ]; then
-            echo "::error::Releases are made from main, not $GITHUB_REF."
-            exit 1
-          fi
+          git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
           status=0
-          git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null || status=$?
-          if [ "$status" != 2 ]; then  # 2: no such tag
-            echo "::error::The tag v$VERSION exists already, or the tags couldn't be listed."
+          git merge-base --is-ancestor HEAD origin/main || status=$?
+          if [ "$status" = 1 ]; then
+            echo "::error::The tag $GITHUB_REF_NAME is on a commit that isn't on main. Push the commit to main, then re-run the failed jobs."
+            exit 1
+          elif [ "$status" != 0 ]; then
+            echo "::error::Couldn't check that the tag's commit is on main."
             exit 1
           fi
 
       # Checks the version (see scripts/release.py), writes a trial's version
       # into pyproject.toml, and makes the README's links absolute for PyPI.
       - name: Prepare the version, the README and the release notes
+        id: prepare
+        env:
+          TRIAL_VERSION: ${{ inputs.version }}
         run: |
           args=()
-          if [ "$PUBLISH" = true ]; then args+=(--publish); fi
-          python3 scripts/release.py prepare "$VERSION" "${args[@]}" \
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            version="${GITHUB_REF_NAME#v}"
+            args+=(--publish)
+          else
+            version="$TRIAL_VERSION"
+          fi
+          python3 scripts/release.py prepare "$version" "${args[@]}" \
             --repository "$GITHUB_REPOSITORY" --notes "$RUNNER_TEMP/notes.md"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "--- Release notes"
           cat "$RUNNER_TEMP/notes.md"
+
+      # Trials run it too, so that each trial tries the check that a release
+      # relies on.
+      - name: Check that PyPI and GitHub releases don't have the version yet
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/release.py check-unpublished "$VERSION" --repository "$GITHUB_REPOSITORY"
 
       - name: Build the sdist and wheel
         run: uv build --out-dir dist
@@ -117,17 +148,24 @@ jobs:
           path: ${{ runner.temp }}/notes.md
           if-no-files-found: error
 
-  # The release image has no add-on wheel inside: the machine installs the
-  # add-on's version from PyPI. Built fresh, without a cache.
-  # This is the first job that publishes: an approval step (a "release"
-  # environment with required reviewers) belongs here, as `environment: release`.
+  # The image of a release, pushed after the approval. It has no add-on wheel
+  # inside: the machine installs the add-on's version from PyPI. Built fresh,
+  # without a cache. This is the first job that publishes, so it runs in the
+  # "release" environment (required reviewer; only tags vX.Y.Z may deploy):
+  # its approval gates this job and, through `needs`, PyPI and the release.
+  # image-trial builds the same image for a trial; keep their build steps the
+  # same (tests/test_release.py checks it).
   image:
     needs: [checks, build]
+    if: github.event_name == 'push'
+    environment: release
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: read
-      packages: write  # the push to ghcr.io, only with publish on
+      packages: write  # the push to ghcr.io
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
     steps:
       - uses: actions/checkout@v7
 
@@ -138,31 +176,30 @@ jobs:
       - uses: docker/setup-buildx-action@v4.4.1
 
       - name: Sign in to ghcr.io
-        if: inputs.publish
         uses: docker/login-action@v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Build the image (linux/amd64, linux/arm64), and push it with publish on
+      - name: Build the image (linux/amd64, linux/arm64) and push it
         uses: docker/build-push-action@v7.4.0
         with:
           context: .
           file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: ${{ inputs.publish }}
+          push: true
           pull: true
           no-cache: true
           tags: |
-            ${{ env.IMAGE }}:${{ inputs.version }}
+            ${{ env.IMAGE }}:${{ needs.build.outputs.version }}
             ${{ env.IMAGE }}:latest
           labels: |
             org.opencontainers.image.title=orange3-cloud machine
             org.opencontainers.image.description=The machine image of orange3-cloud: the Orange add-on that runs heavy computation in your own cloud account.
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.licenses=GPL-3.0-or-later
-            org.opencontainers.image.version=${{ inputs.version }}
+            org.opencontainers.image.version=${{ needs.build.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
           # ghcr.io shows a multi-architecture image's description from these.
           annotations: |
@@ -173,7 +210,6 @@ jobs:
       # A package's first push makes it private, whatever the repository's
       # visibility; users' machines pull it without credentials.
       - name: Check that anyone can pull the image
-        if: inputs.publish
         run: |
           docker logout ghcr.io
           if docker buildx imagetools inspect "$IMAGE:$VERSION" >/dev/null; then
@@ -182,13 +218,57 @@ jobs:
             echo "::warning::$IMAGE is private: make it public in the package's settings on GitHub (Danger Zone, Change visibility)."
           fi
 
+  # A trial's image: the same build as the image job's, for both architectures,
+  # pushed nowhere. No environment, so a trial never waits for an approval.
+  image-trial:
+    needs: [checks, build]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-qemu-action@v4.4.0
+        with:
+          platforms: arm64
+
+      - uses: docker/setup-buildx-action@v4.4.1
+
+      - name: Build the image (linux/amd64, linux/arm64) without pushing it
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          pull: true
+          no-cache: true
+          tags: |
+            ${{ env.IMAGE }}:${{ needs.build.outputs.version }}
+            ${{ env.IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.title=orange3-cloud machine
+            org.opencontainers.image.description=The machine image of orange3-cloud: the Orange add-on that runs heavy computation in your own cloud account.
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.licenses=GPL-3.0-or-later
+            org.opencontainers.image.version=${{ needs.build.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          # ghcr.io shows a multi-architecture image's description from these.
+          annotations: |
+            index:org.opencontainers.image.description=The machine image of orange3-cloud: the Orange add-on that runs heavy computation in your own cloud account.
+            index:org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            index:org.opencontainers.image.licenses=GPL-3.0-or-later
+
   pypi:
     needs: [build, image]
-    if: inputs.publish
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # PyPI's trusted publisher names this repository and release.yml, and no
-    # environment, so it accepts this job's token with or without one.
+    # environment, so it accepts this job's token without one. The approval
+    # is the image job's, which this job needs.
     permissions:
       id-token: write  # Trusted Publishing
     steps:
@@ -200,12 +280,14 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3
 
   release:
-    needs: pypi
-    if: inputs.publish
+    needs: [build, pypi]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write  # the tag and the release
+      contents: write  # the release
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
     steps:
       - uses: actions/download-artifact@v8.0.2
         with:
@@ -217,9 +299,9 @@ jobs:
           name: release-notes
           path: notes
 
-      - name: Tag the commit and create the GitHub release
+      - name: Create the GitHub release for the tag
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" --title "orange3-cloud $VERSION" --notes-file notes/notes.md
+          gh release create "v$VERSION" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "orange3-cloud $VERSION" --notes-file notes/notes.md

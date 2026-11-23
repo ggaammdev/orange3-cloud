@@ -166,21 +166,25 @@ gcloud --configuration=$ORANGE3_CLOUD_GCLOUD_CONFIG auth print-access-token \
 
 ## Releasing
 
-The release workflow (`.github/workflows/release.yml`) publishes a version. Start it by hand, on `main`:
+The release workflow (`.github/workflows/release.yml`) publishes a version when its tag `vX.Y.Z` is pushed, after the maintainer approves it. To release `X.Y.Z`:
 
-```sh
-gh workflow run release.yml -f version=X.Y.Z -f publish=true
-```
+1. On `main`, set `version = "X.Y.Z"` in `pyproject.toml` and add a section for it to `CHANGELOG.md` (`## X.Y.Z` or `## [X.Y.Z]`, optionally followed by a date). Commit and push.
+2. Tag that commit and push the tag:
 
-It runs the CI checks (it calls `ci.yml`), builds the sdist and wheel and checks them (`scripts/release.py check-dist`: one of each, of that version, with none of the files that git ignores as internal; and `twine check`), and builds the machine image for `linux/amd64` and `linux/arm64`. Then it publishes, in this order:
+   ```sh
+   git tag vX.Y.Z && git push origin vX.Y.Z
+   ```
 
-1. the image to `ghcr.io/ggaammdev/orange3-cloud-machine`, tagged `X.Y.Z` and `latest`. Release images have no wheel inside: the machine installs `orange3-cloud[server]==X.Y.Z` from PyPI at boot;
-2. the sdist and wheel to PyPI, with Trusted Publishing: PyPI trusts this repository's `release.yml`, so no token is stored anywhere;
-3. the tag `vX.Y.Z` and the GitHub release, with the version's section of `CHANGELOG.md`, the sdist and the wheel.
+   Only tags of this form start it; a tag such as `v1.0.1rc1` starts nothing.
+3. The workflow runs the CI checks (it calls `ci.yml`) and checks that the version can be released: the tag's commit is on `main`, `pyproject.toml` has the version, `CHANGELOG.md` has its section, and neither PyPI nor GitHub releases have it yet. It builds the sdist and wheel and checks them (`scripts/release.py check-dist`: one of each, of that version, with none of the files that git ignores as internal; and `twine check`).
+4. Then it waits for the approval: on the run's page in the Actions tab, **Review deployments**, tick `release`, **Approve and deploy**. The `release` environment's required reviewer approves, and only tags `v*.*.*` may deploy to it.
+5. After the approval it publishes, in this order:
+   1. the machine image, built for `linux/amd64` and `linux/arm64`, to `ghcr.io/ggaammdev/orange3-cloud-machine`, tagged `X.Y.Z` and `latest`. Release images have no wheel inside: the machine installs `orange3-cloud[server]==X.Y.Z` from PyPI at boot;
+   2. the sdist and wheel to PyPI, with Trusted Publishing: PyPI trusts this repository's `release.yml`, so no token is stored anywhere;
+   3. the GitHub release for the tag, with the version's section of `CHANGELOG.md`, the sdist and the wheel.
+6. Set `main` to the next development version (such as `1.0.2.dev0`), so that checkouts use the development images again.
 
-The image goes first because it can be pushed again, while a version on PyPI can never be replaced. If a publishing job fails, fix the cause and re-run the failed jobs.
-
-With `publish=true`, the version must be `X.Y.Z` and the same as `pyproject.toml`'s (commit it first), `CHANGELOG.md` must have a section for it (`## X.Y.Z` or `## [X.Y.Z]`, optionally followed by a date), and the tag must not exist yet. After a release, set `main` to the next development version (such as `1.0.1.dev0`), so that checkouts use the development images again.
+The image job holds the approval because it is the first that publishes: PyPI and the release need it, so nothing is published before the approval. The image goes first because it can be pushed again, while a version on PyPI can never be replaced. If a check fails, nothing is published: fix the cause on `main`, then delete the tag (`git push origin :refs/tags/vX.Y.Z`, `git tag -d vX.Y.Z`) and tag again; if only the tag's commit wasn't on `main` yet, push it to `main` and re-run the failed jobs. If a publishing job fails, fix the cause and re-run the failed jobs.
 
 **Working on a release version.** While a checkout's version is a release (such as `1.0.0`, from the commit that sets it until the next development version), the add-on on a cloud runs the public image of that version: before the release it doesn't exist, and after it, it has the released code rather than your changes. Local mode from a source checkout isn't affected: it builds its image and mounts the checkout. On a cloud, point the add-on at a development image, which has the wheel of its commit inside, with `ORANGE3_CLOUD_GCP_IMAGE`, `ORANGE3_CLOUD_AWS_IMAGE` or `ORANGE3_CLOUD_AZURE_IMAGE`, for example the `:dev-<sha>` tag that CI pushed for the commit you work on (see "Development images"; on AWS and Azure the add-on makes the token to pull it as for a development version). An installed add-on in local mode uses `ORANGE3_CLOUD_LOCAL_IMAGE`. The tests that start real machines need the same variables.
 
@@ -188,7 +192,7 @@ PyPI shows the README without the repository's files, so the workflow makes the 
 
 A package's first push to ghcr.io makes it private, whatever the repository's visibility. After the first release, make it public on GitHub (the package's settings, "Danger Zone", "Change visibility"), or released add-ons can't pull it; the workflow warns while it is private.
 
-**A trial** publishes nothing: leave `publish` off (the default). The workflow runs the checks, builds the sdist and wheel, keeps them as the run's artifact `dist`, and builds the image for both architectures without pushing it. Any PEP 440 version works, for example a release candidate, which the workflow writes into `pyproject.toml` for its build:
+**A trial** publishes nothing: start the workflow by hand. Publishing happens only from a tag. A trial runs the checks, builds the sdist and wheel, keeps them as the run's artifact `dist`, and builds the image for both architectures without pushing it, in a job without the `release` environment, so it never waits for an approval. Any PEP 440 version works, for example a release candidate, which the workflow writes into `pyproject.toml` for its build:
 
 ```sh
 gh workflow run release.yml -f version=1.0.0rc1

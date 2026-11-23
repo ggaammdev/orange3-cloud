@@ -3,15 +3,16 @@
 (``.github/workflows/release.yml``) runs it on its own checkout::
 
     python scripts/release.py prepare VERSION [--publish] [--notes FILE]
+    python scripts/release.py check-unpublished VERSION
     python scripts/release.py check-dist dist VERSION
 
 ``prepare`` checks the version and gets the checkout ready to build. It
 changes files in place, so run it on a throwaway checkout:
 
-- with ``--publish``, the version must be a final release ``X.Y.Z``, equal to
-  the one in ``pyproject.toml`` (so the tag matches the code), and
-  ``CHANGELOG.md`` must have a section for it (``## X.Y.Z``, ``## [X.Y.Z]``,
-  optionally followed by a date);
+- with ``--publish`` (a release, from the tag ``vVERSION``), the version must
+  be a final release ``X.Y.Z``, equal to the one in ``pyproject.toml`` (so the
+  tag matches the code), and ``CHANGELOG.md`` must have a section for it
+  (``## X.Y.Z``, ``## [X.Y.Z]``, optionally followed by a date);
 - without it (a trial), any PEP 440 version such as ``1.0.0rc1`` is allowed,
   and it is written into ``pyproject.toml``.
 
@@ -19,6 +20,10 @@ Either way, the README's relative links and images become absolute links to
 the repository at the tag ``vVERSION``, because PyPI shows the README
 without the repository's files, and the version's changelog section is
 written to ``--notes``.
+
+``check-unpublished`` checks that neither PyPI nor the repository's GitHub
+releases have the version yet (the environment variable ``GITHUB_TOKEN``, if
+set, signs in to GitHub's API).
 
 ``check-dist`` checks that the folder holds one sdist and one wheel of the
 version, and that neither contains an internal file (the files git ignores
@@ -28,14 +33,19 @@ because they are never published).
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 import tarfile
+import urllib.error
+import urllib.request
 import zipfile
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "ggaammdev/orange3-cloud"
+PYPI_PROJECT = "orange3-cloud"
 
 #: A final release: what ``--publish`` accepts.
 FINAL_VERSION = re.compile(r"^\d+\.\d+\.\d+$")
@@ -118,7 +128,7 @@ def prepare(root: Path, version: str, publish: bool, repository: str = REPOSITOR
     changelog = root / "CHANGELOG.md"
     notes = changelog_section(changelog.read_text(), version) if changelog.exists() else None
     if publish:
-        if not FINAL_VERSION.match(version):
+        if not FINAL_VERSION.fullmatch(version):
             raise ReleaseError(f"A release version is X.Y.Z, not {version!r}.")
         if (committed := project_version(pyproject)) != version:
             raise ReleaseError(
@@ -127,12 +137,47 @@ def prepare(root: Path, version: str, publish: bool, repository: str = REPOSITOR
         if not notes:
             raise ReleaseError(f"CHANGELOG.md has no section for {version}.")
     else:
-        if not ANY_VERSION.match(version):
+        if not ANY_VERSION.fullmatch(version):
             raise ReleaseError(f"Not a normalized PEP 440 version: {version!r}.")
         pyproject_path.write_text(set_project_version(pyproject, version))
     readme = root / "README.md"
     readme.write_text(readme_for_pypi(readme.read_text(), repository, f"v{version}"))
     return notes or f"(CHANGELOG.md has no section for {version}.)"
+
+
+def http_status(url: str, token: str | None = None) -> int:
+    """The HTTP status of a GET of ``url``, signed in with ``token`` if given."""
+    request = urllib.request.Request(url, headers={"User-Agent": "orange3-cloud-release"})
+    if token:
+        request.add_header("Authorization", f"Bearer {token}")
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return response.status
+    except urllib.error.HTTPError as e:  # 404 and the other errors are answers here
+        return e.code
+
+
+def check_unpublished(
+    version: str,
+    repository: str = REPOSITORY,
+    token: str | None = None,
+    status: Callable[[str, str | None], int] = http_status,
+) -> None:
+    """Check that neither PyPI nor GitHub releases have ``version`` yet."""
+    places = {
+        "PyPI": (f"https://pypi.org/pypi/{PYPI_PROJECT}/{version}/json", None),
+        "GitHub releases": (
+            f"https://api.github.com/repos/{repository}/releases/tags/v{version}",
+            token,
+        ),
+    }
+    for place, (url, auth) in places.items():
+        code = status(url, auth)
+        if code == 200:
+            raise ReleaseError(f"{place} has {version} already ({url}).")
+        if code != 404:
+            raise ReleaseError(f"Couldn't check {place} for {version}: HTTP {code} from {url}.")
+        print(f"{place}: no {version} yet.")
 
 
 def internal_members(names: list[str]) -> list[str]:
@@ -172,6 +217,9 @@ def main(argv: list[str] | None = None) -> int:
     prep.add_argument("--publish", action="store_true", help="a release to publish")
     prep.add_argument("--notes", type=Path, help="write the release notes here")
     prep.add_argument("--repository", default=REPOSITORY, help="OWNER/NAME on GitHub")
+    new = commands.add_parser("check-unpublished", help="check that the version isn't out yet")
+    new.add_argument("version")
+    new.add_argument("--repository", default=REPOSITORY, help="OWNER/NAME on GitHub")
     check = commands.add_parser("check-dist", help="check the built sdist and wheel")
     check.add_argument("folder", type=Path)
     check.add_argument("version")
@@ -182,6 +230,8 @@ def main(argv: list[str] | None = None) -> int:
             if args.notes:
                 args.notes.write_text(notes + "\n")
             print(f"Prepared {args.version} ({'release' if args.publish else 'trial'}).")
+        elif args.command == "check-unpublished":
+            check_unpublished(args.version, args.repository, os.environ.get("GITHUB_TOKEN"))
         else:
             check_dist(args.folder, args.version)
     except ReleaseError as e:
