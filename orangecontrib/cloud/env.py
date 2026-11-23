@@ -45,7 +45,8 @@ __all__ = [
 
 SCHEMA_VERSION = 1
 
-#: This add-on's own distribution name.
+#: This add-on's own distribution name, PEP 503 normalized like every name
+#: here (its metadata spells it ``Orange3-Cloud``).
 SELF_NAME = "orange3-cloud"
 
 #: Packages that are always required (when installed), besides add-ons.

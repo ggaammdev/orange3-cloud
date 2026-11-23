@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "orange3-cloud"
+name = "Orange3-Cloud"
 version = "1.0.1.dev0"
 description = "Orange add-on that runs heavy computation on a machine in your own cloud account: Google Cloud, AWS or Azure."
 readme = "README.md"

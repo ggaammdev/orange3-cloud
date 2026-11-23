@@ -5,6 +5,7 @@ The changes in each release of orange3-cloud.
 ## Unreleased
 
 - The Cloud settings dialog's "Notify me about the hosted version" button works: it opens the [roadmap issue for a hosted service](https://github.com/ggaammdev/orange3-cloud/issues/13), where you can upvote it and subscribe to its updates.
+- Orange's Add-ons dialog lists the add-on as "Cloud".
 
 ## 1.0.0
 

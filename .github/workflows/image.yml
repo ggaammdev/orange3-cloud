@@ -147,7 +147,7 @@ jobs:
           EOF
 
       - name: Check that the bundled wheel was installed
-        run: docker logs machine 2>&1 | grep -F "from the bundled wheel orange3_cloud-"
+        run: docker logs machine 2>&1 | grep -iF "from the bundled wheel orange3_cloud-"
 
       - name: Wait for the idle shutdown
         run: |

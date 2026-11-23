@@ -77,6 +77,8 @@ __all__ = [
 
 log = logging.getLogger(__name__)
 
+#: This add-on's distribution name (``importlib.metadata`` normalizes lookups,
+#: so it finds ``Orange3-Cloud``).
 DIST_NAME = "orange3-cloud"
 
 #: Values of :attr:`ServerState.shutdown_reason`.

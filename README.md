@@ -22,7 +22,7 @@ You build workflows in Orange on your own computer as usual. Data that is too la
 
 1. In Orange, open **Options → Add-ons…**.
 2. Click **Add more…**, type `orange3-cloud` and click **Add**.
-3. Make sure `orange3-cloud` is checked, click **OK**, and restart Orange when it asks.
+3. Make sure **Cloud** is checked, click **OK**, and restart Orange when it asks.
 
 The toolbox now has a **Cloud** section.
 

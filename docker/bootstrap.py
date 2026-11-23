@@ -84,6 +84,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -96,6 +97,8 @@ from pathlib import Path
 # The platforms, next to this script (its folder is first on sys.path).
 from boot_platforms import BootError, Environment, Platform, find_platform, log
 
+#: This add-on's distribution name, PEP 503 normalized (its metadata spells
+#: it ``Orange3-Cloud``).
 SELF_NAME = "orange3-cloud"
 
 CACHE_DIR = Path(os.environ.get("ORANGE3_CLOUD_CACHE_DIR", "/var/cache/orange3-cloud"))
@@ -268,6 +271,12 @@ def install_required(packages: list[dict], workdir: Path) -> Path:
     return req
 
 
+def normalized(name: str) -> str:
+    """A distribution name as PEP 503 normalizes it, e.g. ``orange3-cloud`` for
+    ``Orange3-Cloud`` or ``orange3_cloud`` (this script has no ``packaging``)."""
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
 def _source_version(src: Path) -> str | None:
     import tomllib  # here, so the unit tests can import this file on Python 3.10
 
@@ -275,7 +284,7 @@ def _source_version(src: Path) -> str | None:
         project = tomllib.loads((src / "pyproject.toml").read_text())["project"]
     except (OSError, KeyError, tomllib.TOMLDecodeError):
         return None
-    if project.get("name") != SELF_NAME:
+    if normalized(str(project.get("name", ""))) != SELF_NAME:
         return None
     return project.get("version", "?")
 
@@ -295,8 +304,11 @@ def _copy_source(src: Path, dest: Path) -> Path:
 
 
 def _bundled_wheel(version: str) -> Path | None:
-    for wheel in sorted(WHEELS_DIR.glob("orange3_cloud-*.whl")):
-        if wheel.name.split("-")[1] == version:
+    """This add-on's wheel of ``version`` in ``WHEELS_DIR``, whichever way its
+    file name spells the name (``orange3_cloud-…``, ``Orange3_Cloud-…``)."""
+    for wheel in sorted(WHEELS_DIR.glob("*.whl")):
+        name, _, rest = wheel.name.partition("-")
+        if normalized(name) == SELF_NAME and rest.split("-", 1)[0] == version:
             return wheel
     return None
 
@@ -386,9 +398,11 @@ def boot(config: dict) -> tuple[list[str], dict[str, str]]:
     spec = config["spec"]
     workdir = Path(tempfile.mkdtemp(prefix="orange3-cloud-boot-"))  # mode 0700
 
-    required = [p for p in spec.get("required", []) if p["name"] != SELF_NAME]
-    best_effort = [p for p in spec.get("best_effort", []) if p["name"] != SELF_NAME]
-    self_pkg = next((p for p in spec.get("required", []) if p["name"] == SELF_NAME), None)
+    required = [p for p in spec.get("required", []) if normalized(p["name"]) != SELF_NAME]
+    best_effort = [p for p in spec.get("best_effort", []) if normalized(p["name"]) != SELF_NAME]
+    self_pkg = next(
+        (p for p in spec.get("required", []) if normalized(p["name"]) == SELF_NAME), None
+    )
     if self_pkg is None:
         raise BootError(f"the EnvironmentSpec doesn't list {SELF_NAME}")
 

@@ -6,6 +6,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+from importlib.metadata import version
 from pathlib import Path
 
 import pytest
@@ -75,6 +76,21 @@ def test_exact_python_build_is_used(bootstrap, monkeypatch):
 
     assert bootstrap.install_python({"python_version": "3.11.9"}) == "3.11.9"
     assert not any(c[:2] == ("python", "list") for c in calls)
+
+
+def test_finds_the_add_on_whatever_its_name_case(bootstrap, monkeypatch, tmp_path):
+    """The metadata spells the add-on ``Orange3-Cloud``: the bundled wheel,
+    the source folder and the spec's entry are found by the normalized name."""
+    for name in ("orange3_cloud-1.0.0-py3-none-any.whl", "Orange3_Cloud-1.0.1-py3-none-any.whl"):
+        (tmp_path / name).touch()
+    monkeypatch.setattr(bootstrap, "WHEELS_DIR", tmp_path)
+    assert bootstrap._bundled_wheel("1.0.1").name.startswith("Orange3_Cloud-1.0.1-")
+    assert bootstrap._bundled_wheel("1.0.0").name.startswith("orange3_cloud-1.0.0-")
+    assert bootstrap._bundled_wheel("1.0") is None
+    assert bootstrap.normalized("Orange3_Cloud") == bootstrap.SELF_NAME
+    if sys.version_info >= (3, 11):  # tomllib; the image's Python is 3.13
+        root = BOOTSTRAP.parents[1]
+        assert bootstrap._source_version(root) == version("orange3-cloud")
 
 
 def test_platforms(bootstrap, platforms, monkeypatch, tmp_path):
