@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Box Plot</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Box Plot</h1>
+<p class="summary">Box plots of a column of a cloud table, computed on all rows on the machine.</p>
+<p><img src="images/cloud-box-plot.png" alt="Cloud Box Plot of a numeric column by the target"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li>None</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<ul>
+<li><b>Variable</b>: a numeric column gets a box per group (quartiles, mean and extremes); a categorical column gets its counts per group.</li>
+<li><b>Subgroups</b>: a categorical column to group by.</li>
+<li><b>Display</b>: compare medians or means, or neither; <b>Stretch bars</b> for categorical columns.</li>
+</ul>
+<p>The header shows Orange's test for the groups (Student's t, ANOVA or χ²), computed from all rows.</p>
+</body>
+</html>

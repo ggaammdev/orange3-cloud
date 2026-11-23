@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Categories</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Categories</h1>
+<p class="summary">Counts the values of a column of a cloud table on all rows, makes a numeric or text column categorical and merges infrequent values, as Orange's Edit Domain does, with the values and counts of all rows.</p>
+<p><img src="images/cloud-categories.png" alt="Cloud Categories making a numeric column categorical and merging all but its two most frequent values"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Data</b>: the cloud table with the column changed</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>Choose a <b>column</b>: a categorical, numeric or text column (time columns aren't supported). The machine counts its values on all rows, and the list shows each value, the number of rows that have it, and what it <b>becomes</b> with the settings.</p>
+<ul>
+<li><b>As categorical</b> (numeric and text columns): the column becomes categorical with the values found on all rows, in the order and with the names that Edit Domain's "As categorical" gives them.</li>
+<li><b>Merge</b> (categorical columns, or with As categorical): the modes of Edit Domain's dialog for merging infrequent values. <b>Group selected values</b> merges the values selected in the list; <b>Group values with less than N occurrences</b> or <b>less than p % occurrences</b>, and <b>Group all except the N most frequent values</b>, decide by the counts of all rows. As in Edit Domain, values that no row has are never merged, and among values with equal counts the ones that come first in the data count as more frequent. The merged values get the <b>new value name</b> ("other" if empty).</li>
+</ul>
+<p>The machine makes the change on all rows with the same settings. Everything else that Edit Domain does (renaming columns, renaming and merging categories by hand, other type changes) works with Orange's own Edit Domain on a cloud table.</p>
+<p>Orange's own Edit Domain sees only the placeholder row of a cloud table: its "Merge infrequent" merges nothing, and its "As categorical" is refused when a Cloud widget uses the table.</p>
+<h2>Messages</h2>
+<ul><li><i>'x' has 1,000,000 different values, too many for a categorical column</i>: a column with more than 100,000 different values isn't listed and isn't made categorical.</li></ul>
+<h2>Memory</h2>
+<p>The changed table is a new table on the machine, about as large as the input. If the machine hasn't enough memory for it, the widget says so; choose a larger machine size in Cloud settings.</p>
+</body>
+</html>

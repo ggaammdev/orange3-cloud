@@ -1,0 +1,6 @@
+# The machine image needs only docker/bootstrap.py and docker/boot_platforms.py
+# from the repository, so the build context is an allowlist. This keeps everything
+# else out of it, including local-only files, the virtual environment and git history.
+*
+!docker/bootstrap.py
+!docker/boot_platforms.py

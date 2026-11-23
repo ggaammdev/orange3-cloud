@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud k-Means</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud k-Means</h1>
+<p class="summary">k-Means clustering of all rows of a cloud table, on the machine, with silhouette scores computed on all rows.</p>
+<p><img src="images/cloud-k-means.png" alt="Cloud k-Means with silhouette scores for 2 to 8 clusters"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Data</b>: the cloud table with <i>Cluster</i> and <i>Silhouette</i> meta columns</li><li><b>Centroids</b>: the clusters' centres, a small table on your computer</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>The options are those of Orange's k-Means, and the clusters are the same as Orange's:</p>
+<ul>
+<li><b>Number of clusters</b>: fixed, or a range. For a range, the table shows the mean silhouette of each number and selects the best; click another to output it.</li>
+<li><b>Normalize columns</b>, the <b>initialization</b>, <b>re-runs</b> and <b>maximum iterations</b>.</li>
+<li><b>Exact silhouette up to</b>: up to this many rows (100,000 by default) the silhouette is exact. Above it, the machine computes the simplified silhouette (each row's distance to its cluster's centre against the nearest other centre) on all rows, and the column is called <i>Simplified silhouette</i>. The exact silhouette grows with the square of the rows.</li>
+</ul>
+<p>Orange's own k-Means computes the silhouette from a sample of 5,000 rows on bigger data; this widget never uses a sample.</p>
+</body>
+</html>

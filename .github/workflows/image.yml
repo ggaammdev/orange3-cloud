@@ -1,0 +1,203 @@
+name: Image
+
+# Builds the development machine image (amd64 only) with the add-on wheel of
+# this commit inside, starts it with an EnvironmentSpec made here, checks that
+# /v1/info answers with the same versions, and that the machine stops by itself
+# after a short idle timeout.
+#
+# On every push to main, the tested image is then pushed to the PRIVATE
+# Artifact Registry repository in the Google Cloud test project, as
+#   <region>-docker.pkg.dev/<project>/orange3-cloud/machine:dev and :dev-<short-sha>
+# using keyless sign-in (Workload Identity Federation). The project, provider and
+# service account come from the repository's Actions secrets, so that the logs
+# (public in a public repository) show them masked; the region is a variable.
+# scripts/setup-dev-registry.sh sets them. Never push this image to a public registry.
+
+on:
+  pull_request:
+    paths:
+      - "docker/**"
+      - "orangecontrib/**"
+      - "pyproject.toml"
+      - ".dockerignore"
+      - ".github/workflows/image.yml"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write  # keyless sign-in to Google Cloud (publish steps only)
+    env:
+      MACHINE_DIR: ${{ github.workspace }}/../machine
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.12"
+          activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+
+      # Only to describe an environment for the machine to copy; no Qt needed.
+      - name: Install Orange and the add-on
+        run: uv pip install "orange3==3.41.0" -e ".[server]"
+
+      - name: Create the token, certificate and EnvironmentSpec
+        run: |
+          mkdir -p "$MACHINE_DIR"
+          openssl rand -hex 32 >"$MACHINE_DIR/token"
+          openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+            -keyout "$MACHINE_DIR/key.pem" -out "$MACHINE_DIR/cert.pem" -days 1 \
+            -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+          (cd "$MACHINE_DIR" && python -c 'from orangecontrib.cloud.env import collect_environment as c
+          print(c().to_json())' >env-spec.json)
+          # The container runs as another user; this runner is throwaway.
+          chmod -R a+rX "$MACHINE_DIR"
+
+      # Development images bundle the add-on wheel of this commit, so a machine
+      # can install a version that isn't on PyPI (see docker/bootstrap.py).
+      - name: Build the add-on wheel
+        run: uv build --wheel --out-dir "$RUNNER_TEMP/wheels" && ls "$RUNNER_TEMP/wheels"
+
+      - uses: docker/setup-buildx-action@v4.4.1
+
+      - name: Build the image (linux/amd64)
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          build-contexts: wheels=${{ runner.temp }}/wheels
+          tags: orange3-cloud-machine:ci
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Fails only on critical problems that have a fix available. The user's
+      # packages are installed when the machine starts, so they aren't scanned here.
+      - name: Security scan of the image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          image-ref: orange3-cloud-machine:ci
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      # No source folder is mounted, so the machine installs the bundled wheel,
+      # as a development image on Google Cloud does.
+      - name: Start the machine
+        run: |
+          docker run -d --name machine --init -p 127.0.0.1:8443:8443 \
+            -e ORANGE3_CLOUD_CONFIG=env \
+            -e ORANGE3_CLOUD_TOKEN_FILE=/run/orange3-cloud/token \
+            -e ORANGE3_CLOUD_TLS_CERT_FILE=/run/orange3-cloud/cert.pem \
+            -e ORANGE3_CLOUD_TLS_KEY_FILE=/run/orange3-cloud/key.pem \
+            -e ORANGE3_CLOUD_ENV_SPEC_FILE=/run/orange3-cloud/env-spec.json \
+            -e ORANGE3_CLOUD_IDLE_TIMEOUT=10 \
+            -v "$MACHINE_DIR:/run/orange3-cloud:ro" \
+            orange3-cloud-machine:ci
+
+      - name: Wait for /v1/info
+        run: |
+          for i in $(seq 1 300); do
+            if curl -sf --max-time 5 --cacert "$MACHINE_DIR/cert.pem" \
+                -H @<(printf 'Authorization: Bearer %s\n' "$(cat "$MACHINE_DIR/token")") \
+                https://localhost:8443/v1/info >"$MACHINE_DIR/info.json"; then
+              echo "The machine answered after about $((i * 2)) s."
+              exit 0
+            fi
+            if [ "$(docker inspect -f '{{.State.Running}}' machine)" != true ]; then
+              echo "The machine stopped while starting."
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Timed out."
+          exit 1
+
+      - name: Check the versions
+        run: |
+          python - <<'EOF'
+          import json, os, platform
+          from importlib.metadata import version
+
+          info = json.load(open(os.path.join(os.environ["MACHINE_DIR"], "info.json")))
+          pkgs = info["packages"]
+          assert info["server_version"] == version("orange3-cloud"), info["server_version"]
+          print(f"python: requested {info['python_version_requested']}, "
+                f"installed {info['python_version']}")
+          assert info["python_version_requested"] == platform.python_version()
+          for name in ("orange3", "numpy", "scikit-learn"):
+              print(f"{name}: here {version(name)}, machine {pkgs.get(name)}")
+              assert pkgs.get(name) == version(name), name
+          print("install failures:", [f["name"] for f in info["install_failures"]])
+          EOF
+
+      - name: Check that the bundled wheel was installed
+        run: docker logs machine 2>&1 | grep -F "from the bundled wheel orange3_cloud-"
+
+      - name: Wait for the idle shutdown
+        run: |
+          # /v1/info doesn't count as activity, so the 10 s run from the server's start.
+          timeout 60 docker wait machine >exit-code || { echo "Still running."; exit 1; }
+          echo "The machine stopped by itself, exit code $(cat exit-code) (3: idle timeout)."
+          test "$(cat exit-code)" = 3
+
+      - name: Machine output
+        if: always()
+        run: docker logs machine 2>&1 | tail -100 || true
+
+      # The provider's name holds the project's number, which isn't a secret of
+      # its own, so it is masked in the logs too.
+      - name: Mask the project number
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          PROVIDER: ${{ secrets.GCP_WIF_PROVIDER }}
+        run: |
+          number="${PROVIDER#projects/}"
+          number="${number%%/*}"
+          case "$number" in
+            "" | *[!0-9]*) echo "GCP_WIF_PROVIDER isn't projects/<number>/..."; exit 1 ;;
+          esac
+          echo "::add-mask::$number"
+
+      - name: Sign in to Google Cloud
+        id: gcp
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: google-github-actions/auth@v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEV_IMAGES_SA }}
+          token_format: access_token
+          create_credentials_file: false
+
+      - name: Push the development image to Artifact Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          TOKEN: ${{ steps.gcp.outputs.access_token }}
+          REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev
+          IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/orange3-cloud/machine
+        run: |
+          case "$REGISTRY" in
+            *-docker.pkg.dev) ;;
+            *) echo "Not an Artifact Registry host: $REGISTRY"; exit 1 ;;
+          esac
+          printf '%s' "$TOKEN" | docker login -u oauth2accesstoken --password-stdin "https://$REGISTRY"
+          for tag in dev "dev-${GITHUB_SHA::7}"; do
+            docker tag orange3-cloud-machine:ci "$IMAGE:$tag"
+            docker push "$IMAGE:$tag"
+          done
+          docker logout "https://$REGISTRY"

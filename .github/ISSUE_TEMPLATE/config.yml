@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/ggaammdev/orange3-cloud/security/advisories/new
+    about: Privately, to the maintainers (see SECURITY.md). Not in a public issue.
+  - name: Setting up a cloud
+    url: https://github.com/ggaammdev/orange3-cloud#choose-a-cloud
+    about: The setup guides for Google Cloud, AWS and Azure, each with troubleshooting.
+  - name: Questions about Orange itself
+    url: https://orangedatamining.com/docs/
+    about: Orange's own documentation, for questions not about the add-on.

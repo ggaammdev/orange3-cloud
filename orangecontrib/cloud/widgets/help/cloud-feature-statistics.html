@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Feature Statistics</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Feature Statistics</h1>
+<p class="summary">Basic statistics of every column of a cloud table, computed on all rows on the machine.</p>
+<p><img src="images/cloud-feature-statistics.png" alt="Cloud Feature Statistics of a million rows"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Reduced Data</b>: the cloud table with only the selected columns</li><li><b>Statistics</b>: the statistics as a table, as in Orange's Feature Statistics</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>It works like Orange's Feature Statistics: a histogram, the mean, mode, median, dispersion, minimum, maximum and the missing values of each column. <b>Color</b> splits the histograms by a categorical column. Click a header to sort, and select columns for the Reduced Data output.</p>
+</body>
+</html>

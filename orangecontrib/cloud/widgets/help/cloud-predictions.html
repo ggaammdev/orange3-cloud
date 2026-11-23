@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Predictions</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Predictions</h1>
+<p class="summary">Predicts a cloud table with models from Cloud Learner, on the machine. The predictions stay on the machine; the scores are computed on all rows.</p>
+<p><img src="images/cloud-predictions.png" alt="Cloud Predictions with scores on a million rows"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li><li><b>Predictors</b>: models from Cloud Learner; connect several to compare them</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Predictions</b>: a cloud table: the data with a prediction column for each model and, for a categorical target, a probability column for each class, as meta columns</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>When the data has the target that the models predict, the table shows their scores on all rows with a known target. <b>Target class</b> chooses the class the scores are for. View the predictions with Cloud Data Table.</p>
+<p>Models that predict another target get no scores and a warning. Predicting again deletes the previous predictions on the machine.</p>
+</body>
+</html>

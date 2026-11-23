@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Distributions</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Distributions</h1>
+<p class="summary">The distribution of a column of a cloud table, computed on all rows on the machine.</p>
+<p><img src="images/cloud-distributions.png" alt="Cloud Distributions split by the target"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Histogram Data</b>: the bars' counts, as in Orange's Distributions</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<ul>
+<li><b>Variable</b>: the column to show.</li>
+<li><b>Bin width</b>: the same choices as Orange's Distributions, computed from all rows.</li>
+<li><b>Fitted distribution</b>: normal, beta, gamma, Rayleigh, Pareto, exponential or kernel density, fitted on the machine. <b>Smoothing</b> applies to kernel density. Fitting a beta distribution to a million rows takes about 10 seconds.</li>
+<li><b>Split by</b> a categorical column, with stacked columns, probabilities or the cumulative distribution.</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud t-SNE</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud t-SNE</h1>
+<p class="summary">A t-SNE map of all rows of a cloud table, computed on the machine. View it with Cloud Scatter Plot.</p>
+<p><img src="images/cloud-t-sne.png" alt="Cloud t-SNE after embedding a table"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Data</b>: the cloud table with <i>t-SNE-x</i> and <i>t-SNE-y</i> meta columns</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>The options are those of Orange's t-SNE: normalizing, PCA preprocessing and its number of components, the initialization, the distance metric, the perplexity, "Preserve global structure" and the exaggeration. New data starts the embedding; after you change an option, click <b>Start</b>. While it runs, <b>Stop</b> cancels it.</p>
+<p>The widget doesn't draw the map. Connect its output to Cloud Scatter Plot and choose <i>t-SNE-x</i> and <i>t-SNE-y</i> as the axes.</p>
+<p>t-SNE is slow on big data: roughly 1.4 ms per row on 8 cores, so 100,000 rows take a few minutes. The widget warns when it expects a minute or more. Above about 1,000 rows it uses approximate nearest neighbours, so the map is as good as Orange's but not the same numbers.</p>
+</body>
+</html>

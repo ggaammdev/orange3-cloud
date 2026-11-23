@@ -1,0 +1,211 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orange3-cloud"
+version = "1.0.0"
+description = "Orange add-on that runs heavy computation on a machine in your own cloud account: Google Cloud, AWS or Azure."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+keywords = ["orange3 add-on", "orange", "data mining", "cloud", "google cloud", "aws", "azure"]
+classifiers = [
+    "Environment :: Plugins",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "Orange3",
+    "azure-identity",
+    "azure-mgmt-compute",
+    "azure-mgmt-resource>=26",  # 26 moved the subscriptions to a package of their own
+    "azure-mgmt-resource-subscriptions",
+    "azure-storage-blob",
+    "boto3[crt]",  # crt: profiles signed in with "aws login"
+    "cryptography",
+    "google-auth",
+    "google-cloud-compute",
+    "google-cloud-resource-manager",
+    "httpx",
+    "packaging",
+    "pydantic>=2.5",
+    "requests",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi",
+    "starlette>=0.39",  # Range requests in FileResponse (object downloads)
+    "uvicorn",
+    "dask[distributed]",
+    "pyarrow",
+    "gcsfs",
+    "psutil",
+    "python-multipart",
+]
+dev = [
+    "import-linter",
+    "psutil",
+    "pytest",
+    "ruff",
+]
+
+[project.urls]
+Homepage = "https://github.com/ggaammdev/orange3-cloud"
+
+[project.entry-points."orange3.addon"]
+cloud = "orangecontrib.cloud"
+
+[project.entry-points."orange.widgets"]
+Cloud = "orangecontrib.cloud.widgets"
+
+# Each widget's help page (F1 or the "?" button), from widgets/help/index.html.
+[project.entry-points."orange.canvas.help"]
+html-index = "orangecontrib.cloud.widgets:WIDGET_HELP_PATH"
+
+# orangecontrib is a namespace package shared by all Orange add-ons, so it has
+# no __init__.py (PEP 420).
+[tool.setuptools.packages.find]
+include = ["orangecontrib.cloud*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"orangecontrib.cloud.widgets" = ["icons/*.svg", "help/*.html", "help/*.css", "help/images/*.png"]
+"orangecontrib.cloud.client.providers" = ["*_prices.json"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+# The machine's bootstrap runs on the image's own Python 3.13.
+per-file-target-version = { "docker/*.py" = "py313" }
+
+[tool.ruff.lint]
+# C90 and PLR0913 keep functions small, BLE and S110 keep errors from being
+# swallowed (see the architecture rules in AGENTS.md).
+select = ["E", "F", "I", "UP", "B", "C90", "SIM", "BLE", "S110", "PLR0913"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.pylint]
+max-args = 6
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Slow tests (e.g. loading 1M rows) run only on request: pytest -m slow
+addopts = "-m 'not slow'"
+markers = ["slow: long tests, skipped unless selected with -m slow"]
+
+# The architecture rules in AGENTS.md that are about imports. Orange is a root
+# package too, so a contract can name Orange.widgets; other libraries can only
+# be named by their top-level package. Only direct imports count for libraries:
+# a module may use a lower layer that uses them.
+[tool.importlinter]
+root_packages = ["orangecontrib.cloud", "Orange"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+# protocol/ is a package: the API models (a module per part of the API), the pickler
+# (pickles.py) and the add-on's recipes (recipes.py). The pickler imports Orange's widget
+# modules only at run time, to unpickle their classes, which no contract can see; a test
+# checks that importing protocol/ imports no Qt.
+name = "Rule 1: protocol/ imports nothing from the rest of the add-on, and no Qt"
+type = "forbidden"
+source_modules = ["orangecontrib.cloud.protocol"]
+forbidden_modules = [
+    "orangecontrib.cloud.client",
+    "orangecontrib.cloud.data",
+    "orangecontrib.cloud.env",
+    "orangecontrib.cloud.gui",
+    "orangecontrib.cloud.server",
+    "orangecontrib.cloud.settings",
+    "orangecontrib.cloud.widgets",
+    "AnyQt",
+    "Orange.widgets",
+    "orangewidget",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Rule 2: server/ runs headless and imports only server/ and protocol/"
+type = "forbidden"
+source_modules = ["orangecontrib.cloud.server"]
+forbidden_modules = [
+    "orangecontrib.cloud.client",
+    "orangecontrib.cloud.data",
+    "orangecontrib.cloud.env",
+    "orangecontrib.cloud.gui",
+    "orangecontrib.cloud.settings",
+    "orangecontrib.cloud.widgets",
+    "AnyQt",
+    "Orange.widgets",
+    "orangewidget",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Rule 3: the add-on's layers"
+type = "layers"
+containers = ["orangecontrib.cloud"]
+layers = [
+    "widgets",
+    "gui | data",
+    "client",
+    "protocol : env : settings",
+]
+
+[[tool.importlinter.contracts]]
+# The server's storage access goes through fsspec/gcsfs, which isn't named here.
+name = "Rule 4: network code only in client/"
+type = "forbidden"
+source_modules = [
+    "orangecontrib.cloud.data",
+    "orangecontrib.cloud.env",
+    "orangecontrib.cloud.gui",
+    "orangecontrib.cloud.protocol",
+    "orangecontrib.cloud.server",
+    "orangecontrib.cloud.settings",
+    "orangecontrib.cloud.widgets",
+]
+forbidden_modules = ["httpx", "requests", "google", "boto3", "botocore", "azure"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Rule 4: the clouds' code only in client/providers/"
+type = "forbidden"
+source_modules = ["orangecontrib.cloud.client"]
+forbidden_modules = ["google", "boto3", "botocore", "azure"]
+ignore_imports = [
+    "orangecontrib.cloud.client.providers.** -> google",
+    "orangecontrib.cloud.client.providers.** -> boto3",
+    "orangecontrib.cloud.client.providers.** -> botocore",
+    "orangecontrib.cloud.client.providers.** -> azure",
+]
+# Not every cloud library has a provider module that imports it yet.
+unmatched_ignore_imports_alerting = "none"
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Rule 5: Qt only in widgets/, gui/, client/session.py and settings.py"
+type = "forbidden"
+source_modules = [
+    "orangecontrib.cloud.client",
+    "orangecontrib.cloud.data",
+    "orangecontrib.cloud.env",
+    "orangecontrib.cloud.protocol",
+    "orangecontrib.cloud.server",
+    "orangecontrib.cloud.settings",
+]
+forbidden_modules = ["AnyQt", "Orange.widgets", "orangewidget"]
+# client/session.py turns the client's work into Qt signals for the widgets.
+# Orange keeps its settings in QSettings (Qt's core, no GUI), so settings.py
+# opens them with it.
+ignore_imports = [
+    "orangecontrib.cloud.client.session -> AnyQt",
+    "orangecontrib.cloud.settings -> AnyQt",
+]
+allow_indirect_imports = true

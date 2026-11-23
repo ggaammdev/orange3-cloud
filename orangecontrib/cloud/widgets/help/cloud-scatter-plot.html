@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Scatter Plot</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Scatter Plot</h1>
+<p class="summary">A scatter plot of a cloud table: every point of a small table, or the density of all rows of a big one.</p>
+<p><img src="images/cloud-scatter-plot.png" alt="Cloud Scatter Plot showing the density of a million rows"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li>None</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<ul>
+<li><b>X</b> and <b>Y</b>: the axes.</li>
+<li><b>Color</b>: a column to color by.</li>
+<li><b>Density grid</b>: the number of cells along each axis (100 by default).</li>
+</ul>
+<p>Tables of up to 20,000 rows are drawn point by point. Bigger tables are drawn as a density: the machine counts the rows in each cell of the grid, and with a color column each cell takes the color of its most common value.</p>
+<p>Cloud t-SNE and Cloud MDS don't draw their maps: connect their output here and choose <i>t-SNE-x</i> and <i>t-SNE-y</i> (or <i>mds-x</i> and <i>mds-y</i>) as the axes.</p>
+<p><img src="images/cloud-scatter-plot-tsne.png" alt="Cloud Scatter Plot of a t-SNE map"></p>
+</body>
+</html>

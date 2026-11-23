@@ -1,0 +1,86 @@
+name: Bug report
+description: Something in orange3-cloud doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. Security problems go to the maintainers privately, as [SECURITY.md](https://github.com/ggaammdev/orange3-cloud/blob/main/SECURITY.md) says, not here.
+
+        **This issue is public.** Before you submit, remove anything private from what you paste: project, account and subscription IDs, bucket and storage account names, IP addresses, tokens, e-mail addresses, file paths and your data.
+
+  - type: input
+    id: orange-version
+    attributes:
+      label: Orange version
+      description: In Orange, **Help → About**, or the Versions table at the bottom of **Cloud settings…**.
+      placeholder: "3.41.0"
+    validations:
+      required: true
+
+  - type: input
+    id: addon-version
+    attributes:
+      label: orange3-cloud version
+      description: The Versions table in **Cloud settings…**, or **Options → Add-ons…**.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 26 on Apple Silicon"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: cloud
+    attributes:
+      label: Where the machine runs
+      options:
+        - Google Cloud
+        - AWS
+        - Azure
+        - Local (Docker)
+        - No machine started
+    validations:
+      required: true
+
+  - type: input
+    id: size
+    attributes:
+      label: Machine size
+      description: As Cloud settings shows it, and the region.
+      placeholder: "Medium (n2-standard-16), us-central1"
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, step by step, what you expected, and what happened instead. Include the widget's error message, and the workflow (`.ows`) if you can share it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: info
+    attributes:
+      label: The machine's /v1/info
+      description: |
+        If a machine was running: with the machine connected, add Orange's **Python Script** widget to any workflow, paste these two lines into its editor and click **Run**:
+
+        ```python
+        from orangecontrib.cloud.client.session import CloudSession
+        print(CloudSession.instance().info().model_dump_json(indent=2))
+        ```
+
+        Copy what it prints from the widget's console. It lists the machine's versions, packages, memory, disk and time limits. Remove anything private first. If you can't run it, copy the Versions table from Cloud settings instead, with its "Couldn't install on the machine" line if it has one.
+      render: json
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Other output (optional)
+      description: Messages from Orange's console or log, or from the machine. Remove anything private first.
+      render: text

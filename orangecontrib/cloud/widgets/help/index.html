@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud widgets</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Cloud widgets</h1>
+<p class="summary">The Cloud widgets run heavy computation on a machine in your own cloud account (Google Cloud, AWS or Azure), or in Docker on your computer. The data stays on the machine, and every result is computed on all its rows.</p>
+<h2>Start a machine</h2>
+<p>Every Cloud widget has a <b>Cloud</b> box at the top. It shows whether a machine is connected, and after each job what it ran with (the versions of Orange and scikit-learn and the machine), how long it took and, on Google Cloud, AWS and Azure, what it cost. Click <b>Cloud settings…</b> to start or stop the machine:</p>
+<ul>
+<li><b>Where the machine runs</b>: <b>Google Cloud</b> (sign in, choose the project, region, zone, machine size and disk; the setup check says what is missing), <b>AWS</b> (choose the AWS CLI's profile, sign in, choose the region, machine size and disk; the setup check says what is missing), <b>Azure</b> (sign in with the Azure CLI, choose the subscription, region, machine size and disk; the setup check says what is missing), or <b>Local (Docker)</b> on this computer, free, with Docker Desktop or OrbStack running.</li>
+<li><b>Time limits</b>: the machine stops by itself when idle (30 minutes by default) and after at most 12 hours. When you quit Orange, the Cloud widgets cancel their jobs. If Orange crashes, or the laptop sleeps, the machine cancels its jobs itself once it hasn't heard from Orange for the idle time, and then stops when it has been idle that long.</li>
+<li><b>Machine</b>: <b>Start</b> and <b>Stop</b>, the machine's state, its price and its cost so far.</li>
+<li><b>Versions</b>: the machine installs your exact versions of Python, Orange and your packages; this table compares them.</li>
+</ul>
+<p><img src="images/cloud-settings-gcp.png" alt="The Cloud settings dialog with Google Cloud chosen"></p>
+<p>Connection settings are kept in Orange's settings, never in workflows. The setup guides describe how to set up <a href="https://github.com/ggaammdev/orange3-cloud/blob/main/docs/setup-gcp.md">Google Cloud</a>, <a href="https://github.com/ggaammdev/orange3-cloud/blob/main/docs/setup-aws.md">AWS</a> and <a href="https://github.com/ggaammdev/orange3-cloud/blob/main/docs/setup-azure.md">Azure</a>.</p>
+<h2>Cloud tables and Orange's own widgets</h2>
+<p>Cloud File's output is a cloud table: Orange sees its columns and one placeholder row in which every value is missing, and the rows stay on the machine.</p>
+<ul>
+<li>Orange's widgets that <b>change data</b>, such as Select Columns, Select Rows, Feature Constructor and Continuize, record their steps, and the machine replays them on all rows.</li>
+<li>Steps that <b>learn from the data</b> (normalizing, imputing, PCA, ...) go through <a href="cloud-preprocess.html">Cloud Preprocess</a>.</li>
+<li>Feature scores and selection by score go through <a href="cloud-rank.html">Cloud Rank</a>, discretizing through <a href="cloud-discretize.html">Cloud Discretize</a>, and removing unused values and constant columns through <a href="cloud-purge-domain.html">Cloud Purge Domain</a>. Orange's own Rank, Discretize and Purge Domain see only the placeholder row: they stop with an error that names the Cloud widget to use, or give the wrong columns.</li>
+<li>Edit Domain's "As categorical" and "Merge infrequent" go through <a href="cloud-categories.html">Cloud Categories</a>, and Create Class through <a href="cloud-create-class.html">Cloud Create Class</a>: on a cloud table, Orange's own versions see only the placeholder row.</li>
+<li>Widgets that <b>look at or compute from data</b> see only the placeholder row: use the Cloud widgets below instead. Learner widgets connect their Learner output, not data.</li>
+</ul>
+<p>The <a href="https://github.com/ggaammdev/orange3-cloud/blob/main/docs/supported-widgets.md">list of supported widgets</a> says which of Orange's widgets work on cloud data and what to use for the others.</p>
+<h2>Messages</h2>
+<ul>
+<li><i>Not connected to a cloud machine</i>: start one with Cloud settings….</li>
+<li><i>This is local data, not a cloud table</i>: the input came from a widget that gives plain local data (a sample, merged rows, ...).</li>
+<li><i>This cloud table is no longer available</i>: the machine that held it has stopped. Start a machine and load the data again with Cloud File (click Load).</li>
+<li><i>The cloud machine ran out of memory</i>: choose a larger machine size in Cloud settings, or use less data.</li>
+<li><i>The machine cancelled the job: Orange hadn't been in touch for 30 minutes</i>: Orange didn't reach the machine for as long as the idle time, for example while the laptop slept, so the machine stopped the job, which nobody seemed to wait for. Run the widget again.</li>
+<li><i>Orange's widgets can't compute statistics of a cloud table on this computer</i> (in Orange's error report): one of Orange's own widgets, such as Rank, Discretize or Purge Domain, tried to count the values of the placeholder row. Use the Cloud widget that the message names.</li>
+</ul>
+<section id="widgets">
+<h2>Widgets</h2>
+<ul>
+<li><a href="cloud-file.html">Cloud File</a></li>
+<li><a href="cloud-data-table.html">Cloud Data Table</a></li>
+<li><a href="cloud-feature-statistics.html">Cloud Feature Statistics</a></li>
+<li><a href="cloud-distributions.html">Cloud Distributions</a></li>
+<li><a href="cloud-box-plot.html">Cloud Box Plot</a></li>
+<li><a href="cloud-scatter-plot.html">Cloud Scatter Plot</a></li>
+<li><a href="cloud-preprocess.html">Cloud Preprocess</a></li>
+<li><a href="cloud-rank.html">Cloud Rank</a></li>
+<li><a href="cloud-discretize.html">Cloud Discretize</a></li>
+<li><a href="cloud-purge-domain.html">Cloud Purge Domain</a></li>
+<li><a href="cloud-categories.html">Cloud Categories</a></li>
+<li><a href="cloud-create-class.html">Cloud Create Class</a></li>
+<li><a href="cloud-learner.html">Cloud Learner</a></li>
+<li><a href="cloud-test-and-score.html">Cloud Test &amp; Score</a></li>
+<li><a href="cloud-predictions.html">Cloud Predictions</a></li>
+<li><a href="cloud-k-means.html">Cloud k-Means</a></li>
+<li><a href="cloud-t-sne.html">Cloud t-SNE</a></li>
+<li><a href="cloud-distances.html">Cloud Distances</a></li>
+<li><a href="cloud-hierarchical-clustering.html">Cloud Hierarchical Clustering</a></li>
+<li><a href="cloud-mds.html">Cloud MDS</a></li>
+</ul>
+</section>
+</body>
+</html>

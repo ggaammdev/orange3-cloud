@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Discretize</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Discretize</h1>
+<p class="summary">Turns the numeric columns of a cloud table into categorical ones, as Orange's Discretize does, with the cut points found on all rows on the machine.</p>
+<p><img src="images/cloud-discretize.png" alt="Cloud Discretize with the cut points of the heart disease data's numeric columns"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Data</b>: the cloud table with the discretized columns</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>It works like Orange's Discretize. The list has the numeric and time columns (features, target and metas). Select the <b>general preset</b> at the top, or one or more columns, and choose a method:</p>
+<ul>
+<li><b>Keep numeric</b> or <b>Remove</b> the column,</li>
+<li><b>Natural binning</b> with about the number of intervals you want, <b>Fixed width</b>, and <b>Time interval</b> for time columns,</li>
+<li><b>Equal frequency</b> or <b>Equal width</b> with a number of intervals,</li>
+<li><b>Entropy vs. MDL</b>, which needs a categorical target,</li>
+<li><b>Custom</b> cut points; <b>CC</b> copies the cut points found for the selected columns.</li>
+</ul>
+<p>The machine finds the cut points on all rows with Orange's own code, and the list then shows them, as Orange's Discretize shows them for the whole table. A column without cut points (for example a constant one) is removed, as in Orange.</p>
+<p>Orange's own Discretize can't discretize a cloud table: it sees only the placeholder row. With Equal frequency or Entropy vs. MDL it stops with an error that points here; with the other methods it removes the numeric columns.</p>
+<h2>Memory</h2>
+<p>The discretized table is a new table on the machine, about as large as the input. If the machine hasn't enough memory for it, the widget says so; choose a larger machine size in Cloud settings.</p>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Weekly update proposals, as pull requests.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # pyproject.toml. Most dependencies are unpinned, so this watches the minimums.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+
+  # The machine image's Debian base (pinned by digest) and uv.
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: weekly

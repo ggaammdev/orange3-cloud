@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Test &amp; Score</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Test &amp; Score</h1>
+<p class="summary">Cross-validates learners, or tests them on test data, in parallel on the machine, with scores computed on all rows.</p>
+<p><img src="images/cloud-test-and-score.png" alt="Cloud Test &amp; Score after cross-validating two learners on a million rows"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li><li><b>Test Data</b>: a second cloud table to test on (optional)</li><li><b>Learner</b>: the Learner outputs of Orange's learner widgets; connect several to compare them</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Evaluation Results</b>: Orange's evaluation results, for ROC Analysis, Confusion Matrix, Lift Curve and Calibration Plot</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<ul>
+<li><b>Cross validation</b>: 2 to 20 folds, stratified or not. The folds are the same as in Orange's Test and Score, so the scores are the same as Orange's on the same rows.</li>
+<li><b>Test on test data</b>: train on Data and test on Test Data.</li>
+<li><b>Target class</b>: the class that the scores are computed for, or the average over classes.</li>
+</ul>
+<p>The scores table is Orange's (right-click its header to choose the scores). Each learner and fold is a separate part of the job, and the parts run side by side as far as the machine's cores and memory allow; the line above the table says how many ran at a time. A learner that fails is marked "(error)".</p>
+<h2>Evaluation results</h2>
+<p>The results hold a prediction for every row and learner and are kept on the machine. Results of up to 100 MB are downloaded at once. Larger results (about 0.7 GB for two learners on 11 million rows) wait for <b>Download results</b>, which shows their size and asks first. The download shows its progress, can be cancelled, and continues where it stopped if the connection breaks.</p>
+<p>The data stays on the machine, so the results' data has only the target column. Confusion Matrix works, but the rows it outputs have only that column.</p>
+</body>
+</html>

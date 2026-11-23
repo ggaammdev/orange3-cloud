@@ -1,0 +1,38 @@
+# The cloud machine in local mode. Use it through scripts/local-machine.sh,
+# which creates the token, certificate and EnvironmentSpec in the folder given
+# by ORANGE3_CLOUD_LOCAL_DIR before starting it.
+name: orange3-cloud-local
+
+services:
+  machine:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: orange3-cloud-machine:local
+    # Reaps the processes that the server's Dask cluster starts.
+    init: true
+    labels:
+      orange3-cloud: "true"
+    # The machine stops by itself after the idle timeout or the maximum
+    # lifetime; it must stay stopped.
+    restart: "no"
+    ports:
+      - "127.0.0.1:${ORANGE3_CLOUD_PORT:-8443}:8443"
+    environment:
+      ORANGE3_CLOUD_CONFIG: env
+      ORANGE3_CLOUD_TOKEN_FILE: /run/orange3-cloud/token
+      ORANGE3_CLOUD_TLS_CERT_FILE: /run/orange3-cloud/cert.pem
+      ORANGE3_CLOUD_TLS_KEY_FILE: /run/orange3-cloud/key.pem
+      ORANGE3_CLOUD_ENV_SPEC_FILE: /run/orange3-cloud/env-spec.json
+      ORANGE3_CLOUD_IDLE_TIMEOUT: ${ORANGE3_CLOUD_IDLE_TIMEOUT:-}
+      ORANGE3_CLOUD_MAX_LIFETIME: ${ORANGE3_CLOUD_MAX_LIFETIME:-}
+      ORANGE3_CLOUD_MACHINE: local
+    volumes:
+      - ${ORANGE3_CLOUD_LOCAL_DIR:?set ORANGE3_CLOUD_LOCAL_DIR}:/run/orange3-cloud:ro
+      # This repository: the machine installs orange3-cloud from it.
+      - ..:/src:ro
+      - cache:/var/cache/orange3-cloud
+
+volumes:
+  cache:
+    name: orange3-cloud-cache

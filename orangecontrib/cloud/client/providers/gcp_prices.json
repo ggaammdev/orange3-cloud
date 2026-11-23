@@ -1,0 +1,483 @@
+{
+ "date": "2026-11-20",
+ "currency": "USD",
+ "source": "Cloud Billing Catalog API, Compute Engine on-demand list prices",
+ "external_ip_per_hour": 0.005,
+ "regions": {
+  "africa-south1": {
+   "c3_cpu": 0.0381531,
+   "c3_gib": 0.0043361,
+   "e2_cpu": 0.02399337,
+   "e2_gib": 0.00321609,
+   "n2_cpu": 0.034773,
+   "n2_gib": 0.004661,
+   "n2d_cpu": 0.030253,
+   "n2d_gib": 0.004055,
+   "pd_balanced_gib_month": 0.109788
+  },
+  "asia-east1": {
+   "c3_cpu": 0.04012123,
+   "c3_gib": 0.00455981,
+   "e2_cpu": 0.02525538,
+   "e2_gib": 0.00338514,
+   "n2_cpu": 0.036602,
+   "n2_gib": 0.004906,
+   "n2d_cpu": 0.031844,
+   "n2d_gib": 0.004268,
+   "pd_balanced_gib_month": 0.1
+  },
+  "asia-east2": {
+   "c3_cpu": 0.04847188,
+   "c3_gib": 0.00550887,
+   "e2_cpu": 0.03051939,
+   "e2_gib": 0.00409032,
+   "n2_cpu": 0.044231,
+   "n2_gib": 0.005928,
+   "n2d_cpu": 0.038481,
+   "n2d_gib": 0.005157,
+   "pd_balanced_gib_month": 0.11
+  },
+  "asia-northeast1": {
+   "c3_cpu": 0.04449753,
+   "c3_gib": 0.00505718,
+   "e2_cpu": 0.02802642,
+   "e2_gib": 0.00373911,
+   "n2_cpu": 0.040618,
+   "n2_gib": 0.005419,
+   "n2d_cpu": 0.035338,
+   "n2d_gib": 0.004715,
+   "pd_balanced_gib_month": 0.13
+  },
+  "asia-northeast2": {
+   "c3_cpu": 0.04449753,
+   "c3_gib": 0.00505718,
+   "e2_cpu": 0.02802642,
+   "e2_gib": 0.00373911,
+   "n2_cpu": 0.040595,
+   "n2_gib": 0.005441,
+   "n2d_cpu": 0.035318,
+   "n2d_gib": 0.004734,
+   "pd_balanced_gib_month": 0.13
+  },
+  "asia-northeast3": {
+   "c3_cpu": 0.04449753,
+   "c3_gib": 0.00505718,
+   "e2_cpu": 0.02802642,
+   "e2_gib": 0.00373911,
+   "n2_cpu": 0.040595,
+   "n2_gib": 0.005441,
+   "n2d_cpu": 0.035318,
+   "n2d_gib": 0.004734,
+   "pd_balanced_gib_month": 0.13
+  },
+  "asia-south1": {
+   "c3_cpu": 0.036036,
+   "c3_gib": 0.00409552,
+   "e2_cpu": 0.0261993,
+   "e2_gib": 0.00351072,
+   "n2_cpu": 0.03797,
+   "n2_gib": 0.005088,
+   "n2d_cpu": 0.018151,
+   "n2d_gib": 0.002433,
+   "pd_balanced_gib_month": 0.12
+  },
+  "asia-south2": {
+   "c3_cpu": 0.03603713,
+   "c3_gib": 0.00409565,
+   "e2_cpu": 0.0261993,
+   "e2_gib": 0.00351072,
+   "n2_cpu": 0.03797,
+   "n2_gib": 0.005088,
+   "n2d_cpu": 0.033034,
+   "n2d_gib": 0.004427,
+   "pd_balanced_gib_month": 0.12
+  },
+  "asia-southeast1": {
+   "c3_cpu": 0.04274771,
+   "c3_gib": 0.00485831,
+   "e2_cpu": 0.02690931,
+   "e2_gib": 0.00360594,
+   "n2_cpu": 0.038999,
+   "n2_gib": 0.005226,
+   "n2d_cpu": 0.033929,
+   "n2d_gib": 0.004547,
+   "pd_balanced_gib_month": 0.11
+  },
+  "asia-southeast2": {
+   "c3_cpu": 0.04659386,
+   "c3_gib": 0.00529543,
+   "e2_cpu": 0.029331147,
+   "e2_gib": 0.003930474,
+   "n2_cpu": 0.04250891,
+   "n2_gib": 0.00569634,
+   "n2d_cpu": 0.03698261,
+   "n2d_gib": 0.00495623,
+   "pd_balanced_gib_month": 0.13
+  },
+  "asia-southeast3": {
+   "pd_balanced_gib_month": 0.105
+  },
+  "asia-southeast4": {
+   "pd_balanced_gib_month": 0.105
+  },
+  "australia-southeast1": {
+   "c3_cpu": 0.0433125,
+   "c3_gib": 0.0049225,
+   "e2_cpu": 0.03095064,
+   "e2_gib": 0.00414759,
+   "n2_cpu": 0.044856,
+   "n2_gib": 0.006011,
+   "n2d_cpu": 0.039025,
+   "n2d_gib": 0.00523,
+   "pd_balanced_gib_month": 0.135
+  },
+  "australia-southeast2": {
+   "c3_cpu": 0.045045,
+   "c3_gib": 0.0051194,
+   "e2_cpu": 0.026308,
+   "e2_gib": 0.003525,
+   "n2_cpu": 0.038128,
+   "n2_gib": 0.005109,
+   "n2d_cpu": 0.033171,
+   "n2d_gib": 0.004446,
+   "pd_balanced_gib_month": 0.135
+  },
+  "europe-central2": {
+   "c3_cpu": 0.0419243,
+   "c3_gib": 0.00476473,
+   "e2_cpu": 0.0263922,
+   "e2_gib": 0.00353742,
+   "n2_cpu": 0.03825,
+   "n2_gib": 0.005127,
+   "n2d_cpu": 0.033277,
+   "n2d_gib": 0.00446,
+   "pd_balanced_gib_month": 0.13
+  },
+  "europe-north1": {
+   "c3_cpu": 0.03815312,
+   "c3_gib": 0.00433613,
+   "e2_cpu": 0.02401614,
+   "e2_gib": 0.00321816,
+   "n2_cpu": 0.034806,
+   "n2_gib": 0.004664,
+   "n2d_cpu": 0.030281,
+   "n2d_gib": 0.004058,
+   "pd_balanced_gib_month": 0.11
+  },
+  "europe-north2": {
+   "c3_cpu": 0.0363825,
+   "c3_gib": 0.0041349,
+   "e2_cpu": 0.02290217,
+   "e2_gib": 0.003069707,
+   "pd_balanced_gib_month": 0.1
+  },
+  "europe-southwest1": {
+   "c3_cpu": 0.040887,
+   "c3_gib": 0.00464684,
+   "e2_cpu": 0.025738,
+   "e2_gib": 0.00345,
+   "n2_cpu": 0.03730098,
+   "n2_gib": 0.00499966,
+   "n2d_cpu": 0.03245236,
+   "n2d_gib": 0.00434948,
+   "pd_balanced_gib_month": 0.12
+  },
+  "europe-west1": {
+   "c3_cpu": 0.03815312,
+   "c3_gib": 0.00433613,
+   "e2_cpu": 0.02399337,
+   "e2_gib": 0.00321609,
+   "n2_cpu": 0.034773,
+   "n2_gib": 0.004661,
+   "n2d_cpu": 0.030253,
+   "n2d_gib": 0.004055,
+   "pd_balanced_gib_month": 0.1
+  },
+  "europe-west10": {
+   "c3_cpu": 0.040885,
+   "c3_gib": 0.00464664,
+   "e2_cpu": 0.02810463,
+   "e2_gib": 0.00376612,
+   "n2_cpu": 0.04073134,
+   "n2_gib": 0.00545815,
+   "n2d_cpu": 0.03543682,
+   "n2d_gib": 0.00474777,
+   "pd_balanced_gib_month": 0.154
+  },
+  "europe-west12": {
+   "c3_cpu": 0.0446985,
+   "c3_gib": 0.00508002,
+   "e2_cpu": 0.02813695,
+   "e2_gib": 0.003771354,
+   "n2_cpu": 0.04077819,
+   "n2_gib": 0.00546573,
+   "n2d_cpu": 0.03547758,
+   "n2d_gib": 0.00475494,
+   "pd_balanced_gib_month": 0.12
+  },
+  "europe-west2": {
+   "c3_cpu": 0.039501,
+   "c3_gib": 0.00448932,
+   "e2_cpu": 0.0281037,
+   "e2_gib": 0.00376602,
+   "n2_cpu": 0.04073,
+   "n2_gib": 0.005458,
+   "n2d_cpu": 0.035435,
+   "n2d_gib": 0.004748,
+   "pd_balanced_gib_month": 0.12
+  },
+  "europe-west3": {
+   "c3_cpu": 0.040887,
+   "c3_gib": 0.00464684,
+   "e2_cpu": 0.0281037,
+   "e2_gib": 0.00376602,
+   "n2_cpu": 0.04073,
+   "n2_gib": 0.005458,
+   "n2d_cpu": 0.035435,
+   "n2d_gib": 0.004748,
+   "pd_balanced_gib_month": 0.12
+  },
+  "europe-west4": {
+   "c3_cpu": 0.0363825,
+   "c3_gib": 0.0041349,
+   "e2_cpu": 0.02401338,
+   "e2_gib": 0.00321816,
+   "n2_cpu": 0.034802,
+   "n2_gib": 0.004664,
+   "n2d_cpu": 0.030278,
+   "n2d_gib": 0.004058,
+   "pd_balanced_gib_month": 0.11
+  },
+  "europe-west6": {
+   "c3_cpu": 0.04539392,
+   "c3_gib": 0.00515851,
+   "e2_cpu": 0.02857225,
+   "e2_gib": 0.00382977,
+   "n2_cpu": 0.041409,
+   "n2_gib": 0.005551,
+   "n2d_cpu": 0.036026,
+   "n2d_gib": 0.004829,
+   "pd_balanced_gib_month": 0.13
+  },
+  "europe-west8": {
+   "c3_cpu": 0.040194,
+   "c3_gib": 0.00456808,
+   "e2_cpu": 0.025302,
+   "e2_gib": 0.003391,
+   "n2_cpu": 0.03666876,
+   "n2_gib": 0.00491492,
+   "n2d_cpu": 0.03190232,
+   "n2d_gib": 0.00427576,
+   "pd_balanced_gib_month": 0.116
+  },
+  "europe-west9": {
+   "c3_cpu": 0.040194,
+   "c3_gib": 0.00456808,
+   "e2_cpu": 0.025302,
+   "e2_gib": 0.003391,
+   "n2_cpu": 0.03666876,
+   "n2_gib": 0.00491492,
+   "n2d_cpu": 0.03190232,
+   "n2d_gib": 0.00427576,
+   "pd_balanced_gib_month": 0.116
+  },
+  "me-central1": {
+   "c3_cpu": 0.04209975,
+   "c3_gib": 0.00478467,
+   "e2_cpu": 0.02650108,
+   "e2_gib": 0.003552089,
+   "n2_cpu": 0.03840737,
+   "n2_gib": 0.005147955,
+   "n2d_cpu": 0.03341493,
+   "n2d_gib": 0.00447849,
+   "pd_balanced_gib_month": 0.1215
+  },
+  "me-central2": {
+   "c3_cpu": 0.05544,
+   "c3_gib": 0.0063008,
+   "e2_cpu": 0.03489854,
+   "e2_gib": 0.004677648,
+   "n2_cpu": 0.0505776,
+   "n2_gib": 0.0067792,
+   "n2d_cpu": 0.0440032,
+   "n2d_gib": 0.0058976,
+   "pd_balanced_gib_month": 0.16
+  },
+  "me-west1": {
+   "c3_cpu": 0.038115,
+   "c3_gib": 0.0043318,
+   "e2_cpu": 0.02399275,
+   "e2_gib": 0.003215883,
+   "n2_cpu": 0.0347721,
+   "n2_gib": 0.0046607,
+   "n2d_cpu": 0.0302522,
+   "n2d_gib": 0.0040546,
+   "pd_balanced_gib_month": 0.11
+  },
+  "northamerica-northeast1": {
+   "c3_cpu": 0.03815312,
+   "c3_gib": 0.00433613,
+   "e2_cpu": 0.02401338,
+   "e2_gib": 0.00321816,
+   "n2_cpu": 0.034802,
+   "n2_gib": 0.004664,
+   "n2d_cpu": 0.030278,
+   "n2d_gib": 0.004058,
+   "pd_balanced_gib_month": 0.11
+  },
+  "northamerica-northeast2": {
+   "c3_cpu": 0.03815312,
+   "c3_gib": 0.00433613,
+   "e2_cpu": 0.02401338,
+   "e2_gib": 0.00321816,
+   "n2_cpu": 0.034802,
+   "n2_gib": 0.004664,
+   "n2d_cpu": 0.030278,
+   "n2d_gib": 0.004058,
+   "pd_balanced_gib_month": 0.11
+  },
+  "northamerica-south1": {
+   "e2_cpu": 0.02377463,
+   "e2_gib": 0.003186648,
+   "pd_balanced_gib_month": 0.109
+  },
+  "southamerica-east1": {
+   "c3_cpu": 0.05502074,
+   "c3_gib": 0.00625315,
+   "e2_cpu": 0.0346242,
+   "e2_gib": 0.00464025,
+   "n2_cpu": 0.05018,
+   "n2_gib": 0.006725,
+   "n2d_cpu": 0.043657,
+   "n2d_gib": 0.005851,
+   "pd_balanced_gib_month": 0.15
+  },
+  "southamerica-west1": {
+   "c3_cpu": 0.0495495,
+   "c3_gib": 0.00563134,
+   "e2_cpu": 0.031190573,
+   "e2_gib": 0.004180647,
+   "n2_cpu": 0.04520373,
+   "n2_gib": 0.00605891,
+   "n2d_cpu": 0.03932786,
+   "n2d_gib": 0.00527098,
+   "pd_balanced_gib_month": 0.143
+  },
+  "us-central1": {
+   "c3_cpu": 0.03465,
+   "c3_gib": 0.003938,
+   "e2_cpu": 0.02181159,
+   "e2_gib": 0.00292353,
+   "n2_cpu": 0.031611,
+   "n2_gib": 0.004237,
+   "n2d_cpu": 0.027502,
+   "n2d_gib": 0.003686,
+   "pd_balanced_gib_month": 0.1
+  },
+  "us-central2": {
+   "pd_balanced_gib_month": 0.1
+  },
+  "us-east1": {
+   "c3_cpu": 0.03465,
+   "c3_gib": 0.003938,
+   "e2_cpu": 0.02181159,
+   "e2_gib": 0.00292353,
+   "n2_cpu": 0.031611,
+   "n2_gib": 0.004237,
+   "n2d_cpu": 0.027502,
+   "n2d_gib": 0.003686,
+   "pd_balanced_gib_month": 0.1
+  },
+  "us-east4": {
+   "c3_cpu": 0.03465,
+   "c3_gib": 0.003938,
+   "e2_cpu": 0.02456745,
+   "e2_gib": 0.00329199,
+   "n2_cpu": 0.035605,
+   "n2_gib": 0.004771,
+   "n2d_cpu": 0.030976,
+   "n2d_gib": 0.004151,
+   "pd_balanced_gib_month": 0.11
+  },
+  "us-east5": {
+   "c3_cpu": 0.03465,
+   "c3_gib": 0.003938,
+   "e2_cpu": 0.02181159,
+   "e2_gib": 0.00292353,
+   "n2_cpu": 0.031611,
+   "n2_gib": 0.004237,
+   "n2d_cpu": 0.027502,
+   "n2d_gib": 0.003686,
+   "pd_balanced_gib_month": 0.1
+  },
+  "us-east7": {
+   "pd_balanced_gib_month": 0.1
+  },
+  "us-south1": {
+   "c3_cpu": 0.040887,
+   "c3_gib": 0.00464684,
+   "e2_cpu": 0.02573768,
+   "e2_gib": 0.003449765,
+   "n2_cpu": 0.03730098,
+   "n2_gib": 0.00499966,
+   "n2d_cpu": 0.03245236,
+   "n2d_gib": 0.00434948,
+   "pd_balanced_gib_month": 0.12
+  },
+  "us-west1": {
+   "c3_cpu": 0.03465,
+   "c3_gib": 0.003938,
+   "e2_cpu": 0.02181159,
+   "e2_gib": 0.00292353,
+   "n2_cpu": 0.031611,
+   "n2_gib": 0.004237,
+   "n2d_cpu": 0.027502,
+   "n2d_gib": 0.003686,
+   "pd_balanced_gib_month": 0.1
+  },
+  "us-west2": {
+   "c3_cpu": 0.04165277,
+   "c3_gib": 0.00473387,
+   "e2_cpu": 0.0261993,
+   "e2_gib": 0.00351141,
+   "n2_cpu": 0.03797,
+   "n2_gib": 0.005089,
+   "n2d_cpu": 0.033034,
+   "n2d_gib": 0.004427,
+   "pd_balanced_gib_month": 0.12
+  },
+  "us-west3": {
+   "c3_cpu": 0.04165277,
+   "c3_gib": 0.00473387,
+   "e2_cpu": 0.0261993,
+   "e2_gib": 0.00351141,
+   "n2_cpu": 0.03797,
+   "n2_gib": 0.005089,
+   "n2d_cpu": 0.033034,
+   "n2d_gib": 0.004427,
+   "pd_balanced_gib_month": 0.12
+  },
+  "us-west4": {
+   "c3_cpu": 0.0390263,
+   "c3_gib": 0.00443537,
+   "e2_cpu": 0.02456745,
+   "e2_gib": 0.00329199,
+   "n2_cpu": 0.035603,
+   "n2_gib": 0.004771,
+   "n2d_cpu": 0.030976,
+   "n2d_gib": 0.004151,
+   "pd_balanced_gib_month": 0.11
+  },
+  "us-west8": {
+   "c3_cpu": 0.03465,
+   "c3_gib": 0.003938,
+   "e2_cpu": 0.02181159,
+   "e2_gib": 0.00292353,
+   "n2_cpu": 0.031611,
+   "n2_gib": 0.004237,
+   "n2d_cpu": 0.027502,
+   "n2d_gib": 0.003686,
+   "pd_balanced_gib_month": 0.1
+  }
+ }
+}

@@ -1,0 +1,41 @@
+name: Feature request
+description: Something orange3-cloud should do, such as a widget, a cloud feature or a file format.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the idea. [docs/supported-widgets.md](https://github.com/ggaammdev/orange3-cloud/blob/main/docs/supported-widgets.md) lists which of Orange's widgets already work on cloud data. This issue is public: leave out anything private.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: The analysis or task, and what stops you now. The size of your data helps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: For example a Cloud widget, an Orange widget that should work on cloud data, a setting, or a file format.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: cloud
+    attributes:
+      label: Your cloud
+      multiple: true
+      options:
+        - Google Cloud
+        - AWS
+        - Azure
+        - Local (Docker)
+        - Another (please say which)
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do instead now (optional)

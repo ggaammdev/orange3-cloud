@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Purge Domain</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Purge Domain</h1>
+<p class="summary">Removes unused values and constant columns of a cloud table and sorts the values of categorical columns, as Orange's Purge Domain does, decided on all rows on the machine.</p>
+<p><img src="images/cloud-purge-domain.png" alt="Cloud Purge Domain after removing a value that no row uses any more"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Data</b>: the cloud table without unused values and constant columns</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>It works like Orange's Purge Domain, with the same options for features, the target (classes) and meta attributes: <b>sort</b> the values of categorical columns, <b>remove unused values</b>, and <b>remove constant</b> columns. Below each group, the widget counts the sorted, reduced and removed columns.</p>
+<p>A typical use is after Select Rows: when the rows that are left no longer use some values of a categorical column, Cloud Purge Domain removes those values. The machine decides with Orange's own code on all rows.</p>
+<p>Orange's own Purge Domain can't decide this on a cloud table: it sees only the placeholder row, which uses no values. It either stops with an error that points here, or its step is refused when a Cloud widget uses the table.</p>
+<h2>Memory</h2>
+<p>The purged table is a new table on the machine, about as large as the input. If the machine hasn't enough memory for it, the widget says so; choose a larger machine size in Cloud settings.</p>
+</body>
+</html>

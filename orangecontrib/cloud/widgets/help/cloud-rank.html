@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Rank</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Rank</h1>
+<p class="summary">Ranks the features of a cloud table by their relevance, with Orange's scoring methods computed on all rows on the machine, and keeps the best ones.</p>
+<p><img src="images/cloud-rank.png" alt="Cloud Rank with the scores of the heart disease data's features"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li><li><b>Scorer</b>: learners that can score features, such as Random Forest or Logistic Regression (their Learner output)</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Reduced Data</b>: the cloud table with the chosen features</li><li><b>Scores</b>: the scores, a row per feature (a small local table)</li><li><b>Features</b>: the chosen features</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>It works like Orange's Rank. Check the <b>scoring methods</b>: Information Gain, Gain Ratio, Gini, ANOVA, χ², ReliefF and FCBF for a categorical target, Univariate Regression and RReliefF for a numeric one. The machine computes them with Orange's own code on all rows, so the scores are those of Orange's Rank on the whole table. Checking another method computes only that one.</p>
+<p>Sort the table by any score, and choose the features to keep: <b>None</b>, <b>All</b>, <b>Manual</b> (select rows in the table) or the <b>Best ranked</b> N.</p>
+<p>Orange's own Rank can't score a cloud table: it sees only the placeholder row. With most of its methods it stops with an error that points here; with the others it picks arbitrary features.</p>
+<h2>Memory</h2>
+<p>Scoring copies and discretizes the data: it needs up to about 12 times the memory of the features and the target. If the machine hasn't enough, the widget says so; choose a larger machine size in Cloud settings.</p>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme version="2.0" title="orange3-cloud: local demo" description="Cross-validates a random forest and logistic regression on 1M rows on the cloud machine and shows their ROC curves; trains logistic regression on the machine and predicts all rows there. Make the data first with scripts/make-demo-data.py, and start the machine with Cloud settings.">
+	<nodes>
+		<node id="0" name="Cloud File" qualified_name="orangecontrib.cloud.widgets.owcloudfile.OWCloudFile" project_name="orange3-cloud" version="" title="Cloud File" position="(100, 300)" />
+		<node id="1" name="Random Forest" qualified_name="Orange.widgets.model.owrandomforest.OWRandomForest" project_name="Orange3" version="" title="Random Forest" position="(260, 40)" />
+		<node id="2" name="Logistic Regression" qualified_name="Orange.widgets.model.owlogisticregression.OWLogisticRegression" project_name="Orange3" version="" title="Logistic Regression" position="(260, 170)" />
+		<node id="3" name="Cloud Test &amp; Score" qualified_name="orangecontrib.cloud.widgets.owcloudtestandscore.OWCloudTestAndScore" project_name="orange3-cloud" version="" title="Cloud Test &amp; Score" position="(430, 110)" />
+		<node id="4" name="ROC Analysis" qualified_name="Orange.widgets.evaluate.owrocanalysis.OWROCAnalysis" project_name="Orange3" version="" title="ROC Analysis" position="(600, 110)" />
+		<node id="5" name="Cloud Learner" qualified_name="orangecontrib.cloud.widgets.owcloudlearner.OWCloudLearner" project_name="orange3-cloud" version="" title="Cloud Learner" position="(430, 300)" />
+		<node id="6" name="Cloud Predictions" qualified_name="orangecontrib.cloud.widgets.owcloudpredictions.OWCloudPredictions" project_name="orange3-cloud" version="" title="Cloud Predictions" position="(600, 300)" />
+		<node id="7" name="Cloud Data Table" qualified_name="orangecontrib.cloud.widgets.owclouddatatable.OWCloudDataTable" project_name="orange3-cloud" version="" title="Cloud Data Table" position="(770, 300)" />
+	</nodes>
+	<links>
+		<link id="0" source_node_id="0" sink_node_id="3" source_channel="Data" sink_channel="Data" enabled="true" source_channel_id="data" sink_channel_id="train_data" />
+		<link id="1" source_node_id="1" sink_node_id="3" source_channel="Learner" sink_channel="Learner" enabled="true" source_channel_id="learner" sink_channel_id="learner" />
+		<link id="2" source_node_id="2" sink_node_id="3" source_channel="Learner" sink_channel="Learner" enabled="true" source_channel_id="learner" sink_channel_id="learner" />
+		<link id="3" source_node_id="3" sink_node_id="4" source_channel="Evaluation Results" sink_channel="Evaluation Results" enabled="true" source_channel_id="evaluations_results" sink_channel_id="evaluation_results" />
+		<link id="4" source_node_id="0" sink_node_id="5" source_channel="Data" sink_channel="Data" enabled="true" source_channel_id="data" sink_channel_id="data" />
+		<link id="5" source_node_id="2" sink_node_id="5" source_channel="Learner" sink_channel="Learner" enabled="true" source_channel_id="learner" sink_channel_id="learner" />
+		<link id="6" source_node_id="0" sink_node_id="6" source_channel="Data" sink_channel="Data" enabled="true" source_channel_id="data" sink_channel_id="data" />
+		<link id="7" source_node_id="5" sink_node_id="6" source_channel="Model" sink_channel="Predictors" enabled="true" source_channel_id="model" sink_channel_id="predictors" />
+		<link id="8" source_node_id="6" sink_node_id="7" source_channel="Predictions" sink_channel="Data" enabled="true" source_channel_id="predictions" sink_channel_id="data" />
+	</links>
+	<annotations>
+		<text id="0" type="text/plain" rect="(30.0, 380.0, 700.0, 90.0)">Before opening this workflow, make its data: python scripts/make-demo-data.py (1,000,000 rows, written next to this file). Then start the machine with Cloud settings… in any Cloud widget. Cloud File loads the file on the machine; everything after it runs there, on all rows. Only the scores, the evaluation results for ROC Analysis and pages of rows come back to this computer.</text>
+	</annotations>
+	<thumbnail />
+	<node_properties>
+		<properties node_id="0" format="literal">{'__version__': 1, 'source': 0, 'local_path': 'demo-data.csv.gz', 'url': '', 'column_rows': [{'name': 'x1', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x2', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x3', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x4', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x5', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x6', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x7', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x8', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'group', 'type': 'categorical', 'role': 'feature', 'values': 'A, B, C, D', 'numeric_ok': False}, {'name': 'outcome', 'type': 'categorical', 'role': 'target', 'values': 'no, yes', 'numeric_ok': False}], 'inferred_rows': [{'name': 'x1', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x2', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x3', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x4', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x5', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x6', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x7', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'x8', 'type': 'numeric', 'role': 'feature', 'values': '', 'numeric_ok': True}, {'name': 'group', 'type': 'categorical', 'role': 'feature', 'values': 'A, B, C, D', 'numeric_ok': False}, {'name': 'outcome', 'type': 'categorical', 'role': 'feature', 'values': 'no, yes', 'numeric_ok': False}], 'columns_source': 'demo-data.csv.gz', 'table_id': '', 'table_machine_id': ''}</properties>
+		<properties node_id="3" format="literal">{'__version__': 1, 'resampling': 0, 'n_folds': 2, 'stratified': True}</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>

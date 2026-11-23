@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Learner</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Learner</h1>
+<p class="summary">Trains any Orange learner on a cloud table, on the machine. The model stays on the machine; you can download it.</p>
+<p><img src="images/cloud-learner.png" alt="Cloud Learner after training logistic regression"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li><li><b>Learner</b>: the Learner output of one of Orange's learner widgets (Random Forest, Logistic Regression, Tree, kNN, ...), with any preprocessors it has</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Model</b>: the model, kept on the machine, for Cloud Predictions</li><li><b>Model (local)</b>: the model itself, after <b>Download model</b>, for Orange's own widgets such as Tree Viewer or Save Model</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<p>Connect a learner widget's <b>Learner</b> output here, and don't connect the cloud table to the learner widget itself: with a cloud table as input, Orange's learner widgets say "Data contains a single target value", because they see only the placeholder row.</p>
+<p>The model's size shows after training. <b>Download model</b> asks first when it's larger than 100 MB: some models contain the training data (k-nearest neighbours, and Orange's trees).</p>
+<p>Random forests and other scikit-learn learners that use one core by default use all of the machine's cores; the model is the same. Training again deletes the previous model on the machine.</p>
+</body>
+</html>

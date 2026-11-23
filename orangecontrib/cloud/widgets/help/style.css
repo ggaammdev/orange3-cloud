@@ -1,0 +1,17 @@
+body {
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 50em;
+  margin: 1.5em auto;
+  padding: 0 1.5em;
+  color: #222;
+}
+h1 { font-size: 1.7em; margin: 0.3em 0; }
+h2 { font-size: 1.2em; margin-top: 1.5em; }
+p.summary { font-size: 1.1em; }
+p.nav { font-size: 0.9em; margin: 0; }
+p.common { color: #555; font-size: 0.95em; }
+img { max-width: 100%; border: 1px solid #ddd; }
+code { font-size: 0.95em; background: #f3f3f3; padding: 0 0.2em; }
+a { color: #1a6fb5; }

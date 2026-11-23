@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Hierarchical Clustering</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Hierarchical Clustering</h1>
+<p class="summary">Hierarchical clustering of the distances that Cloud Distances keeps on the machine, cut into clusters by their number or by height.</p>
+<p><img src="images/cloud-hierarchical-clustering.png" alt="Cloud Hierarchical Clustering cut into three clusters"></p>
+<h2>Inputs</h2>
+<ul><li><b>Distances</b>: distances from Cloud Distances</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Data</b>: between rows: the cloud table the distances were computed from, with a <i>Cluster</i> meta column; between columns: a small table of the columns and their clusters</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<ul>
+<li><b>Linkage</b>: single, average, weighted, complete or Ward, as in Orange.</li>
+<li><b>Cut</b>: <b>Top N</b> clusters, or a <b>Height ratio</b> of the tree.</li>
+</ul>
+<p>The widget draws the top of the dendrogram (its top 50 clusters, or the cut's clusters, up to 200) and lists the clusters' sizes. The clusters are numbered C1, C2, … in the dendrogram's order, as in Orange. Selecting clusters by hand in the dendrogram isn't possible. Changing only the cut is quick: the machine keeps the linkage.</p>
+<p>The linkage needs about 1.1 times half the matrix in memory besides the matrix (less for single linkage), and SciPy computes it on one core: for 50,000 rows about 3 minutes.</p>
+</body>
+</html>

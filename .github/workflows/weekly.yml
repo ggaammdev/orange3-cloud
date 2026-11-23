@@ -1,0 +1,91 @@
+name: Weekly
+
+# Installs the newest orange3 release on the newest Python it has wheels for,
+# and runs the smoke tests, to find out early when a new Orange (or one of the
+# add-on's dependencies) breaks the add-on. CI on every push covers the oldest
+# Python and the older Orange that runs on it.
+#
+# On failure, opens an issue "Breaks with Orange X.Y" (or comments on it, if
+# one is already open).
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"  # Mondays, 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  newest-orange:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write  # the failure issue
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v7
+
+      # The newest orange3 on PyPI and the newest CPython it has Linux wheels
+      # for (not the free-threaded builds).
+      - name: Find the newest Orange and its newest Python
+        id: versions
+        run: |
+          python3 - <<'EOF' >>"$GITHUB_OUTPUT"
+          import json, re, urllib.request
+
+          with urllib.request.urlopen("https://pypi.org/pypi/orange3/json") as response:
+              release = json.load(response)
+          version = release["info"]["version"]
+          tags = {
+              int(m.group(1))
+              for f in release["urls"]
+              if "manylinux" in f["filename"] and "x86_64" in f["filename"]
+              for m in [re.search(r"-cp3(\d+)-cp3\d+-", f["filename"])]
+              if m
+          }
+          print(f"orange={version}")
+          print(f"orange_minor={'.'.join(version.split('.')[:2])}")
+          print(f"python=3.{max(tags)}")
+          EOF
+          cat "$GITHUB_OUTPUT"
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: ${{ steps.versions.outputs.python }}
+          activate-environment: true
+
+      # Shared libraries that Qt needs even on the offscreen platform.
+      - name: Install system libraries for Qt
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+
+      - name: Install Orange, PyQt6 and the add-on
+        run: uv pip install "orange3==${{ steps.versions.outputs.orange }}" PyQt6 -e ".[dev,server]"
+
+      - name: Versions
+        run: python -c "import platform; from importlib.metadata import version as v; print('Python', platform.python_version(), '/ Orange', v('orange3'))"
+
+      - name: Pytest
+        run: pytest -q
+
+      - name: Open an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: Breaks with Orange ${{ steps.versions.outputs.orange_minor || '(newest)' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          VERSIONS: Orange ${{ steps.versions.outputs.orange }} on Python ${{ steps.versions.outputs.python }}
+        run: |
+          body="The weekly check failed with $VERSIONS: $RUN_URL"
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$TITLE\" in:title" \
+            --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -1)
+          if [ -n "$number" ]; then
+            gh issue comment --repo "$GITHUB_REPOSITORY" "$number" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$body"
+          fi

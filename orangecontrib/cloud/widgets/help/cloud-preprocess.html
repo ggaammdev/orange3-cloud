@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cloud Preprocess</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p class="nav"><a href="index.html">Cloud widgets</a></p>
+<h1>Cloud Preprocess</h1>
+<p class="summary">Fits a recipe from Orange's Preprocess widget on all rows of a cloud table, on the machine: normalizing, imputing, discretizing, PCA, feature selection and the rest of Preprocess's steps.</p>
+<p><img src="images/cloud-preprocess.png" alt="Cloud Preprocess after fitting Impute and Normalize"></p>
+<h2>Inputs</h2>
+<ul><li><b>Data</b>: a cloud table, for example from Cloud File</li><li><b>Preprocessor</b>: the recipe: the Preprocessor output of Orange's Preprocess widget</li></ul>
+<h2>Outputs</h2>
+<ul><li><b>Preprocessed Data</b>: the preprocessed cloud table</li></ul>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<h2>How to use it</h2>
+<ol>
+<li>Add Orange's <b>Preprocess</b> widget, without connecting data to it, and build the recipe there.</li>
+<li>Connect its <b>Preprocessor</b> output to Cloud Preprocess's Preprocessor input, and the cloud table to Data.</li>
+</ol>
+<p>Steps that learn their settings from the data (means, cut points, components, ...) must see all rows. Orange's own widgets can't do that on a cloud table, because they see only its placeholder row, so the machine refuses those steps when they come from Orange's Preprocess, Continuize (Normalize) or Impute. Cloud Preprocess fits them on all rows with Orange's own code.</p>
+<p>Without a recipe, the data passes through unchanged. Steps recorded after Cloud Preprocess (Select Columns, ...) work on its output as usual.</p>
+</body>
+</html>
