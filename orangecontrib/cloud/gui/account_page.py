@@ -228,8 +228,12 @@ class AccountPage(ProviderPage):
         """Drop the shown check (it was for another account, or is out of
         date): Start waits until a new check passes."""
         self._check_timer.stop()
-        self._check_serial += 1  # results of a running check are now stale
+        self._drop_shown_check()
         self._checked_for = None
+
+    def _drop_shown_check(self) -> None:
+        """Forget and hide the shown check; results of a running one are stale."""
+        self._check_serial += 1
         self.setup_title.setText("<b>Setup check</b>")
         self.setup_label.setText("")
         self.setup_label.setToolTip("")
@@ -240,11 +244,11 @@ class AccountPage(ProviderPage):
             self.setupChanged.emit()
 
     def _schedule_check(self) -> None:
-        self._check_serial += 1  # results of a running check are now stale
+        """Check again after a short pause; until then the old result is gone,
+        so the page doesn't show a "ready" that Start no longer agrees with."""
+        self._drop_shown_check()
         self._checked_for = self.setup_key()
-        if self.setup_checks is not None:
-            self.setup_checks = None
-            self.setupChanged.emit()
+        self.setup_title.setText("<b>Setup check</b> (checking…)")
         self._check_timer.start()
 
     def _schedule_check_if_changed(self) -> None:

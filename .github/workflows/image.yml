@@ -5,7 +5,8 @@ name: Image
 # /v1/info answers with the same versions, and that the machine stops by itself
 # after a short idle timeout.
 #
-# On every push to main, the tested image is then pushed to the PRIVATE
+# On every push to main of this repository (not of forks, which have no access),
+# the tested image is then pushed to the PRIVATE
 # Artifact Registry repository in the Google Cloud test project, as
 #   <region>-docker.pkg.dev/<project>/orange3-cloud/machine:dev and :dev-<short-sha>
 # using keyless sign-in (Workload Identity Federation). The project, provider and
@@ -163,7 +164,7 @@ jobs:
       # The provider's name holds the project's number, which isn't a secret of
       # its own, so it is masked in the logs too.
       - name: Mask the project number
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ggaammdev/orange3-cloud'
         env:
           PROVIDER: ${{ secrets.GCP_WIF_PROVIDER }}
         run: |
@@ -176,7 +177,7 @@ jobs:
 
       - name: Sign in to Google Cloud
         id: gcp
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ggaammdev/orange3-cloud'
         uses: google-github-actions/auth@v3.0.0
         with:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
@@ -185,7 +186,7 @@ jobs:
           create_credentials_file: false
 
       - name: Push the development image to Artifact Registry
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ggaammdev/orange3-cloud'
         env:
           TOKEN: ${{ steps.gcp.outputs.access_token }}
           REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev
