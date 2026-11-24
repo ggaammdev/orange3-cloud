@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Orange3-Cloud"
-version = "1.0.3"
+version = "1.0.4.dev0"
 description = "Orange add-on that runs heavy computation on a machine in your own cloud account: Google Cloud, AWS or Azure."
 readme = "README.md"
 license = "GPL-3.0-or-later"
