@@ -61,9 +61,9 @@ The [taxi demo](docs/demo-taxi.md) explores and models every yellow taxi trip in
 | Laptop (M1, 16 GB) | January, 3.5 million | 49 s | 3 min 23 s | 0.715 / 0.719 |
 | Laptop (M1, 16 GB) | 4 months, 15.2 million | 4 min 20 s | 17 min 11 s (swapping) | 0.711 / 0.715 |
 | Laptop (M1, 16 GB) | the year, 48.7 million | out of memory | not possible | – |
-| Cloud, Medium | the year, 48.7 million | 47 s | 41 min 55 s | 0.749 / 0.752 |
+| Cloud, Medium | the year, 48.7 million | 50 s | 34 min 33 s | 0.749 / 0.752 |
 
-The cloud machine ran on Google Cloud for 44.5 minutes in all, start included, for about $0.59. [docs/demo-taxi.md](docs/demo-taxi.md) has the details of these timings, what each widget shows, and screenshots.
+The cloud machine ran on Google Cloud for 37 minutes in all, start included, for about $0.49. [docs/demo-taxi.md](docs/demo-taxi.md) has the details of these timings, what each widget shows, and screenshots.
 
 ## Far beyond a laptop: 11 million rows
 

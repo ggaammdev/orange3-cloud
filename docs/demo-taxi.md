@@ -2,7 +2,7 @@
 
 `examples/taxi-demo.ows` explores and models every yellow taxi trip in New York City in 2025, about 48.7 million of them, on a cloud machine: when people tip and how much, how distance and fare go together, what kinds of trips there are, and whether a trip paid by card gets a tip. Orange's own widgets change the data (Feature Constructor, Select Rows, Select Columns), and Cloud widgets look at it and compute on it, all on all rows.
 
-The data is the trip records of the [NYC Taxi and Limousine Commission](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) (TLC): twelve monthly Parquet files, 0.8 GB together. Orange's File widget can't read Parquet; as CSV, the year is 4.2 GB, and Orange on a laptop with 16 GB of memory can't load it. On a Medium cloud machine the whole workflow takes about 45 minutes and costs about $0.60.
+The data is the trip records of the [NYC Taxi and Limousine Commission](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) (TLC): twelve monthly Parquet files, 0.8 GB together. Orange's File widget can't read Parquet; as CSV, the year is 4.2 GB, and Orange on a laptop with 16 GB of memory can't load it. On a Medium cloud machine the whole workflow takes about 35 minutes and costs about $0.50.
 
 ![The taxi demo workflow in Orange](images/taxi-workflow.png)
 
@@ -50,25 +50,25 @@ Cloud: Medium on Google Cloud (`n2-standard-16`, 16 vCPUs, 64 GB) in `us-central
 | | Laptop, January | Laptop, 2 months | Laptop, 4 months | Laptop, the year | Cloud, Medium, the year |
 |---|---:|---:|---:|---:|---:|
 | Trips | 3.5M | 7.1M | 15.2M | 48.7M | 48.7M |
-| Load (File, Cloud File) | 49 s | 1 min 40 s | 4 min 20 s | **out of memory**: stopped after 7 min | 47 s |
-| Feature Constructor and Select Rows | 10 s | 18 s | 40 s | – | 7 min 18 s |
+| Load (File, Cloud File) | 49 s | 1 min 40 s | 4 min 20 s | **out of memory**: stopped after 7 min | 50 s |
+| Feature Constructor and Select Rows | 10 s | 18 s | 40 s | – | 6 min 58 s |
 | Distributions | 3 s | 6 s | 13 s | – | 3 s |
-| Scatter Plot | 27 s | 55 s | 2 min 15 s | – | 6 s |
-| k-Means | 6 s | 10 s | 21 s | – | 1 min 58 s |
+| Scatter Plot | 27 s | 55 s | 2 min 15 s | – | 5 s |
+| k-Means | 6 s | 10 s | 21 s | – | 1 min 54 s |
 | Card Trips and the Box Plots | 2 s | 4 s | 10 s | – | 8 s |
-| Test & Score (3 folds) | 1 min 44 s | 3 min 25 s | 9 min 8 s | – | 31 min 35 s |
-| All steps | 3 min 23 s | 6 min 42 s | 17 min 11 s | – | 41 min 55 s |
+| Test & Score (3 folds) | 1 min 44 s | 3 min 25 s | 9 min 8 s | – | 30 min 28 s |
+| All steps | 3 min 23 s | 6 min 42 s | 17 min 11 s | – | 34 min 33 s |
 | Memory | no swap | no swap | 5.1 GB of swap | 8.7 GB of swap | 49 of 64 GB |
 | AUC: logistic regression / forest | 0.715 / 0.719 | 0.713 / 0.718 | 0.711 / 0.715 | – | 0.749 / 0.752 |
 
-On the cloud machine, starting it took 74 s and the whole workflow 42 minutes: every view of the 48.7 million trips, from Cloud File to the box plots, was ready after 10.5 minutes, and the cross-validation took the other 31.5. The machine ran for 44.5 minutes in all, about $0.59: Feature Constructor and Select Rows cost $0.10, k-Means $0.03, Test & Score $0.42, and each of the other steps less than a cent. Each Cloud widget shows its own time and cost.
+On the cloud machine, starting it took 70 s and the whole workflow 34.5 minutes: every view of the 48.7 million trips, from Cloud File to the box plots, was ready after 10 minutes, and the cross-validation ended 24.5 minutes later. Test & Score shows 30.5 minutes because its job started about 4 minutes in and waited there for the steps before it, so the steps add up to more than the whole workflow. The machine ran for 37 minutes in all, about $0.49: Feature Constructor and Select Rows cost $0.09, k-Means $0.03, Test & Score $0.40, and each of the other steps less than a cent. Each Cloud widget shows its own time and cost.
 
 What this shows:
 
 - **The laptop can't hold the year.** Four months (15 million trips) already make the 16 GB Mac swap 5 GB, and the year runs out of memory before File has loaded it.
-- **The cloud machine looks at every trip in seconds.** It loads the year in 47 s, and its viewers compute on 43.5 million trips in 2–6 s each, about as fast as the laptop draws one month.
+- **The cloud machine looks at every trip in seconds.** It loads the year in 50 s, and its viewers compute on 43.5 million trips in 2–5 s each, about as fast as the laptop draws one month.
 - **Feature Constructor is the slow step on the machine.** Orange computes its expressions row by row in Python, on one core, and the machine checks the new categorical columns once more on all rows, so the five new columns took 7 minutes. It runs once for all four branches of the workflow.
-- **Cross-validation runs one part at a time on a Medium machine.** Each part (a learner on two thirds of the 30.2 million card trips) needed 23–27 GB of memory, so the six parts ran one after another; a machine with more memory runs them side by side. Logistic regression took 20 minutes of the 31, the forest 4.
+- **Cross-validation runs one part at a time on a Medium machine.** Each part (a learner on two thirds of the 30.2 million card trips) needed 23–27 GB of memory, so the six parts ran one after another; a machine with more memory runs them side by side. Logistic regression took 20 of its 24 minutes, the forest 3.5.
 - **The year gives a better model.** Both learners reach an AUC of 0.75 on the whole year, against 0.71–0.72 on its first months.
 
 ## The data
