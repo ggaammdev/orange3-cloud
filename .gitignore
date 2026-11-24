@@ -30,6 +30,8 @@ htmlcov/
 .idea/
 .vscode/
 *.swp
+# Orange's autosave of an open workflow
+*.swp.p
 
 # Demo data made by scripts/make-demo-data.py
 examples/*.csv.gz
