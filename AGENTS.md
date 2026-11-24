@@ -35,7 +35,8 @@ orangecontrib/cloud/
     data/           RemoteTable, CloudModel, CloudDistances, memory estimates
     gui/            Cloud settings dialog, each provider's page (provider_page.py; account_page.py, the base of the
                     clouds' pages: gcp_page.py, aws_page.py, azure_page.py), size picker, relay.py (results from
-                    background threads)
+                    background threads), stop_machine.py (Stop: when it can, its question, the machine's cost)
+                    and quit_question.py (the question when Orange quits with a cloud machine running)
     widgets/        Cloud widgets; base.py is their base class, viewer.py the viewers', help/ their help pages,
                     dev/ holds test widgets
     server/         the API server on the machine: app, jobs (worker.py: the operations' side), table store, file loader (loader.py, with csv_file.py and parquet_file.py) and sources, object downloads, ops/ (a module per job kind, listed in registration.py)

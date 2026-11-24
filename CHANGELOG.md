@@ -2,6 +2,12 @@
 
 The changes in each release of orange3-cloud.
 
+## Unreleased
+
+- Every Cloud widget has a **Stop machine** button next to **Cloud settings…**. It asks first, with the machine's price and cost so far, and then does what **Stop** in Cloud settings does.
+- Quitting Orange while a cloud machine runs asks what to do with it: **Stop and quit** stops it before Orange quits, **Keep it running** leaves it running until its idle time is over, and **Cancel** keeps Orange open. A machine in Docker on your computer costs nothing, so quitting doesn't ask about it.
+- Closing the last workflow window quits Orange also while the Cloud settings dialog is open.
+
 ## 1.0.1
 
 - The Cloud settings dialog's "Notify me about the hosted version" button works: it opens the [roadmap issue for a hosted service](https://github.com/ggaammdev/orange3-cloud/issues/13), where you can upvote it and subscribe to its updates.

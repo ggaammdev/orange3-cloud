@@ -14,7 +14,7 @@
 <ul><li>None</li></ul>
 <h2>Outputs</h2>
 <ul><li><b>Data</b>: the cloud table. Orange's own widgets see its columns and one placeholder row; the Cloud widgets compute on all its rows on the machine.</li></ul>
-<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b> and <b>Stop machine</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
 <h2>Source</h2>
 <ul>
 <li><b>File on this computer</b> (click <b>…</b> to browse). A local machine gets the file directly. On Google Cloud, the file is uploaded to your project's storage bucket first, on AWS to an S3 bucket in your account, and on Azure to a storage account in your subscription; the first time, Cloud File asks before it creates the bucket or storage account. Files stay there, so later sessions don't upload them again, and an upload that breaks off continues where it stopped. On Azure, you need the role <i>Storage Blob Data Contributor</i> on the storage account to upload, even as the subscription's owner: Cloud File gives it to you when it creates the account, and asks before giving it to you if you don't have it. Azure takes a minute or two to apply a new role, so that first upload waits.</li>

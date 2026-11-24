@@ -9,6 +9,8 @@ import time
 from importlib.metadata import version
 from pathlib import Path
 
+from AnyQt.QtCore import QTimer
+from AnyQt.QtWidgets import QApplication, QMessageBox
 from conftest import SPEC, CuttableProxy, https_server
 from Orange.widgets.tests import base  # not WidgetTest itself: pytest would collect it
 
@@ -19,8 +21,10 @@ from orangecontrib.cloud.client.providers.base import (
     MachineState,
     MachineStatus,
     MachineType,
+    ProviderError,
 )
-from orangecontrib.cloud.client.session import CloudSession, HandleStore
+from orangecontrib.cloud.client.session import CloudSession, HandleStore, SessionState
+from orangecontrib.cloud.gui.quit_question import ask_before_quit
 from orangecontrib.cloud.protocol.jobs import JobState
 from orangecontrib.cloud.server.app import ServerConfig, create_machine_app
 from orangecontrib.cloud.widgets.base import CANCEL_WAIT
@@ -271,3 +275,80 @@ class TestCloudBaseWidget(base.WidgetTest):
             "Run it again."
         )
         assert w.results == [] and w.cloud_status == ""
+
+    def test_stop_machine_button(self):
+        """The Stop machine button follows the session's state, asks first, and
+        stops the machine as Stop in Cloud settings does; a failed stop shows."""
+        w = self.create_widget(OWCloudSleepTest)
+        assert not w.stop_button.isEnabled()  # no machine
+        seen = []
+        self.session.statusChanged.connect(
+            lambda state: seen.append((state, w.stop_button.isEnabled()))
+        )
+        self.provider.price = 1.2  # a cloud machine
+        self.addCleanup(setattr, self.provider, "price", 0.0)
+        self.connect()
+        assert ("starting", False) in seen and w.stop_button.isEnabled()
+
+        questions = answer_question("Cancel")
+        w.stop_button.click()
+        assert questions[0].startswith("Stop the cloud machine? The machine, its disk and")
+        assert "$1.20/h" in questions[0] and "so far" in questions[0]
+        assert self.session.is_connected and self.provider.running
+
+        def fail(handle=None):
+            raise ProviderError("No permission to stop it.")
+
+        self.provider.stop = fail
+        answer_question("Stop")
+        w.stop_button.click()
+        self.process_events(lambda: w.Error.cloud_error.is_shown())
+        assert str(w.Error.cloud_error) == "Couldn't stop the machine: No permission to stop it."
+        del self.provider.stop
+
+        assert w.stop_button.isEnabled()  # to try again
+        answer_question("Stop")
+        w.stop_button.click()
+        self.process_events(lambda: self.session.state is SessionState.DISCONNECTED)
+        assert ("stopping", False) in seen and not w.stop_button.isEnabled()
+        assert not self.provider.running and self.session.store.load() is None
+
+    def test_quit_question_when_the_stop_fails(self):
+        """Quitting with "Stop and quit": a stop that fails says why, and
+        Orange quits only if the user says so."""
+        self.provider.price = 1.2
+        self.addCleanup(setattr, self.provider, "price", 0.0)
+        self.connect()
+        w = self.create_widget(OWCloudSleepTest)
+
+        def fail(handle=None):
+            raise ProviderError("No permission to stop it.")
+
+        self.provider.stop = fail
+        self.addCleanup(delattr, self.provider, "stop")
+        for answer, quits in (("Cancel", False), ("Quit anyway", True)):
+            questions = answer_question("Stop and quit", answer)
+            assert ask_before_quit(w, self.session) is quits
+            assert questions[1].startswith("Couldn't stop the cloud machine. No permission")
+        assert self.provider.running
+
+
+def answer_question(*buttons):
+    """Answer the next questions (message boxes) with these buttons; returns
+    the questions' texts, as they come."""
+    texts, buttons = [], list(buttons)
+
+    def answer():
+        box = QApplication.activeModalWidget()
+        if not isinstance(box, QMessageBox) or not box.isVisible():
+            QTimer.singleShot(10, answer)
+            return
+        texts.append(f"{box.text()} {box.informativeText()}".replace("\n", " "))
+        name = buttons.pop(0)
+        (button,) = [b for b in box.buttons() if b.text().replace("&", "") == name]
+        button.click()
+        if buttons:
+            QTimer.singleShot(10, answer)
+
+    QTimer.singleShot(0, answer)
+    return texts

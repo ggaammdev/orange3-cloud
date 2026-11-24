@@ -98,7 +98,7 @@ Click **Start**. The dialog shows the steps:
 
 It usually takes about two minutes. Then the Cloud widgets say "Connected", and the dialog shows the machine's price, its cost so far and the time until it stops.
 
-If you close Orange, the Cloud widgets cancel their jobs, and the machine keeps running until its idle time is over. When you open Orange again while it runs, Orange connects to it again.
+When you quit Orange while the machine runs, the Cloud widgets cancel their jobs, and Orange asks what to do with the machine: **Stop and quit** stops it first, **Keep it running** leaves it running until its idle time is over, and **Cancel** keeps Orange open. When you open Orange again while it runs, Orange connects to it again.
 
 ## 8. Your files in the storage bucket
 
@@ -110,7 +110,7 @@ Files at `https://` URLs and in your own buckets (`gs://...`) are loaded by the 
 
 ## 9. Stop, and check that nothing is left
 
-- **Stop** in Cloud settings deletes the machine, its disk, and the firewall rule.
+- **Stop machine** in any Cloud widget, or **Stop** in Cloud settings, deletes the machine, its disk, and the firewall rule.
 - A machine also stops by itself after the idle time or the maximum lifetime. If Orange is open then, Orange deletes it. If Orange was closed, the machine is powered off but its disk stays until you open Orange again, which deletes it.
 - If Orange quits while a machine is starting, the machine may be left behind. Cloud settings lists such machines with a **Delete them…** button.
 

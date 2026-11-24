@@ -14,7 +14,7 @@
 <ul><li><b>Data</b>: a cloud table, for example from Cloud File</li></ul>
 <h2>Outputs</h2>
 <ul><li><b>Data</b>: the cloud table with the new class column; the old class columns become meta attributes</li></ul>
-<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b> and <b>Stop machine</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
 <h2>How to use it</h2>
 <p>It works like Orange's Create Class: give the <b>new class name</b>, choose the <b>source column</b> (text or categorical), and write the rules, a class name and a substring each. A row gets the class of the first rule whose substring it contains; an empty substring takes all rows that are left, and empty class names become C1, C2, .... The <b>options</b> are Create Class's: <b>use regular expressions</b>, <b>match only at the beginning</b> and <b>case sensitive</b>. Click <b>Apply</b>.</p>
 <p>The counts next to each rule are the rows it matches, and in gray the matching rows that a rule above already took, counted on all rows. As in Create Class, the rules after the one that leaves no rows are unused and left out. A text column with more than 100,000 different values shows no counts; the machine still applies the rules on all rows.</p>

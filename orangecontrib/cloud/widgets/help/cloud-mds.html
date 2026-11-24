@@ -14,7 +14,7 @@
 <ul><li><b>Data</b>: a cloud table, for example from Cloud File</li><li><b>Distances</b>: distances from Cloud Distances (optional)</li></ul>
 <h2>Outputs</h2>
 <ul><li><b>Data</b>: the cloud table with <i>mds-x</i> and <i>mds-y</i> meta columns; between columns, a small table of the columns' positions</li></ul>
-<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
+<p class="common">Like every Cloud widget, it has a <b>Cloud</b> box at the top: whether a machine is connected, <b>Cloud settings…</b> and <b>Stop machine</b>, and what the last job ran with, how long it took and what it cost. See <a href="index.html">Cloud widgets</a>.</p>
 <h2>How to use it</h2>
 <p>The options are those of Orange's MDS: the <b>initialization</b> (PCA, which is Torgerson's classical MDS, or random) and the <b>maximum iterations</b>. From a table, the machine first computes Euclidean distances as Orange's MDS does. With both inputs, the distances are embedded and the table must have as many rows. New inputs start the optimization; after you change an option, click <b>Start</b>.</p>
 <p>MDS needs about six <i>n</i> × <i>n</i> matrices of memory (20,000 rows: about 18 GB) and runs mostly on one core, so a bigger machine doesn't make it faster. The widget checks the machine's memory first and warns before a run that may take more than a minute.</p>

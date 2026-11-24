@@ -4,10 +4,14 @@
 
 * a **Cloud box** at the top of the control area: a connection indicator (a
   coloured dot and a short text that follow the shared
-  :class:`~orangecontrib.cloud.client.session.CloudSession`), a
-  "Cloud settings…" button, and a **status line** that says, after a run,
-  where and with which versions the result was computed, and about what its
-  jobs cost (recorded by the session);
+  :class:`~orangecontrib.cloud.client.session.CloudSession`), the
+  "Cloud settings…" and "Stop machine" buttons (Stop asks first, then does
+  what Stop in the Cloud settings does), and a **status line** that says,
+  after a run, where and with which versions the result was computed, and
+  about what its jobs cost (recorded by the session);
+* the question when Orange quits while a cloud machine runs
+  (:mod:`~orangecontrib.cloud.gui.quit_question`, installed when a Cloud
+  widget is created);
 * :meth:`~OWCloudBaseWidget.run_cloud_job` and the more general
   :meth:`~OWCloudBaseWidget.run_cloud`, which run calls to the machine off the
   GUI thread (with Orange's :class:`~Orange.widgets.utils.concurrent.
@@ -84,7 +88,10 @@ from orangecontrib.cloud.client.providers.base import (
 )
 from orangecontrib.cloud.client.session import CloudSession, SessionState
 from orangecontrib.cloud.gui.machine_size import size_hints
+from orangecontrib.cloud.gui.quit_question import install_quit_question
+from orangecontrib.cloud.gui.relay import receiver
 from orangecontrib.cloud.gui.settings_dialog import show_settings_dialog
+from orangecontrib.cloud.gui.stop_machine import can_stop, confirm_stop
 from orangecontrib.cloud.protocol.errors import ErrorCode
 from orangecontrib.cloud.protocol.jobs import JobInfo, JobResult
 from orangecontrib.cloud.protocol.machine import InfoResponse
@@ -304,6 +311,7 @@ class OWCloudBaseWidget(OWWidget, ConcurrentWidgetMixin, openclass=True):
         self._init_cloud_box()
         self._connect_session()
         self._update_connection_indicator()
+        install_quit_question(self.session)
 
     # ------------------------------------------------------------------
     # GUI
@@ -318,9 +326,18 @@ class OWCloudBaseWidget(OWWidget, ConcurrentWidgetMixin, openclass=True):
         row.addWidget(self.connection_dot)
         row.addWidget(self.connection_label, 1)
         box.layout().addLayout(row)
+        buttons = QHBoxLayout()
+        buttons.setContentsMargins(0, 0, 0, 0)
         self.settings_button = gui.button(
-            box, self, "Cloud settings…", callback=self.open_cloud_settings, autoDefault=False
+            None, self, "Cloud settings…", callback=self.open_cloud_settings, autoDefault=False
         )
+        self.stop_button = gui.button(
+            None, self, "Stop machine", callback=self.stop_cloud_machine, autoDefault=False
+        )
+        self.stop_button.setToolTip("Stop and delete the machine, as Stop in Cloud settings does")
+        buttons.addWidget(self.settings_button)
+        buttons.addWidget(self.stop_button)
+        box.layout().addLayout(buttons)
         # No word wrap: wrapped labels don't resize fixed-size widgets well.
         self.cloud_status_label = QLabel()
         self.cloud_status_label.setVisible(False)
@@ -329,6 +346,20 @@ class OWCloudBaseWidget(OWWidget, ConcurrentWidgetMixin, openclass=True):
     def open_cloud_settings(self) -> None:
         """Open the Cloud settings dialog."""
         self.settings_dialog = show_settings_dialog(self, session=self.session)
+
+    def stop_cloud_machine(self) -> None:
+        """Stop the machine after the user confirms, as Stop in Cloud settings
+        does (on the session's background thread)."""
+        if not can_stop(self.session) or not confirm_stop(self, self.session):
+            return
+        future = self.session.stop_machine()
+        future.add_done_callback(receiver(self, OWCloudBaseWidget._on_stopped))
+        self._update_connection_indicator()
+
+    def _on_stopped(self, future: concurrent.futures.Future) -> None:
+        exc = None if future.cancelled() else future.exception()
+        if exc is not None:
+            self._show_error(self.Error.cloud_error, f"Couldn't stop the machine: {exc}")
 
     def _connect_session(self) -> None:
         s = self.session
@@ -362,6 +393,7 @@ class OWCloudBaseWidget(OWWidget, ConcurrentWidgetMixin, openclass=True):
         self.connection_label.setText(text)
         self.connection_label.setToolTip(s.message or text)
         self.connection_dot.setToolTip(s.message or text)
+        self.stop_button.setEnabled(can_stop(s))
 
     def _set_cloud_status(self, text: str) -> None:
         self.cloud_status = text

@@ -54,11 +54,12 @@ from AnyQt.QtWidgets import (
 )
 from AnyQt.sip import isdeleted
 
-from orangecontrib.cloud.client.costs import format_price, format_usd, machine_seconds
+from orangecontrib.cloud.client.costs import format_price, machine_seconds
 from orangecontrib.cloud.client.providers.registry import registered_providers
 from orangecontrib.cloud.client.session import CloudSession, SessionState
 from orangecontrib.cloud.gui.provider_page import ProviderPage, make_page
 from orangecontrib.cloud.gui.relay import receiver
+from orangecontrib.cloud.gui.stop_machine import can_stop, cost_so_far, session_machine
 from orangecontrib.cloud.protocol.machine import InfoResponse
 from orangecontrib.cloud.settings import CloudSettings, hosted_interest_url
 
@@ -163,6 +164,9 @@ class CloudSettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Cloud settings")
         self.setModal(False)
+        # Orange quits when its last workflow window closes, also while this
+        # top-level dialog is open (which the question on quitting expects).
+        self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
         self.session = session if session is not None else CloudSession.instance()
         self.settings = CloudSettings.load()
         self._info: InfoResponse | None = None
@@ -653,12 +657,7 @@ class CloudSettingsDialog(QDialog):
             cost_label.setText("—")
             return
         price_label.setText(f"{format_price(price)} (list price, approximate)")
-        cost = session.session_cost(handle)
-        jobs = session.jobs_cost(handle)
-        text = format_usd(cost) if cost is not None else "unknown"
-        if jobs:
-            text += f" (jobs: {format_usd(jobs)})"
-        cost_label.setText(text)
+        cost_label.setText(cost_so_far(session, handle))
         cost_label.setToolTip(
             "The machine costs its hourly price from when it was created until it is "
             "deleted, whether it computes or not. Jobs: the share of the run time of "
@@ -733,12 +732,10 @@ class CloudSettingsDialog(QDialog):
         state = self.session.state
         available = self.page.ready
         self.start_button.setToolTip("" if available else self.page.not_ready_text)
-        has_machine = self.session.handle is not None or self.session.store.load() is not None
+        has_machine = session_machine(self.session) is not None
         idle = state in (SessionState.DISCONNECTED, SessionState.ERROR)
         self.start_button.setEnabled(available and idle and not self.session.is_connected)
-        self.stop_button.setEnabled(
-            has_machine and state not in (SessionState.STARTING, SessionState.STOPPING)
-        )
+        self.stop_button.setEnabled(can_stop(self.session))
         # The provider can't change while a machine runs.
         for button in self.provider_buttons.values():
             button.setEnabled(idle and not has_machine)
