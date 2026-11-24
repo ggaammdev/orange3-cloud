@@ -192,8 +192,8 @@ def test_leftover_check_outlives_the_dialog(fake, tmp_path):
 
 
 def test_long_setup_results_show_whole(fake, tmp_path):
-    """The provider's page scrolls inside the dialog, and the dialog grows
-    for long setup check results as far as the screen allows."""
+    """The dialog's boxes scroll, and the dialog grows for long setup check
+    results as far as the screen allows."""
     from orangecontrib.cloud.client.providers.setup_checks import Check, Status
     from orangecontrib.cloud.gui.settings_dialog import CloudSettingsDialog
 
@@ -210,8 +210,36 @@ def test_long_setup_results_show_whole(fake, tmp_path):
     page._show_checks([Check("permissions", "Permissions", Status.FAILED, detail=long_text)])
     page.setupChanged.emit()
     spin(app, lambda: dialog.height() > 500, timeout=5)
-    scroll = dialog.provider_scroll
-    assert scroll.widget() is dialog.provider_pages
-    bottom = page.setup_label.mapTo(dialog.provider_pages, page.setup_label.rect().bottomLeft())
+    scroll = dialog.scroll
+    assert scroll.widget() is dialog.content
+    bottom = page.setup_label.mapTo(dialog.content, page.setup_label.rect().bottomLeft())
     assert bottom.y() <= scroll.viewport().height() + scroll.verticalScrollBar().maximum()
     dialog.close()
+
+
+def test_dialog_fits_a_small_screen(fake, tmp_path, monkeypatch):
+    """On a screen shorter than its boxes (a laptop's), the dialog is no
+    taller than the screen, its boxes scroll, and its buttons show."""
+    from AnyQt.QtCore import QRect
+
+    from orangecontrib.cloud.gui.settings_dialog import CloudSettingsDialog
+
+    class SmallScreen:
+        def availableGeometry(self):
+            return QRect(0, 0, 1440, 500)
+
+    app = QApplication.instance() or QApplication([])
+    monkeypatch.setattr(CloudSettingsDialog, "screen", lambda self: SmallScreen())
+    session = CloudSession(fake, store=HandleStore(tmp_path / "machine.json"))
+    dialog = CloudSettingsDialog(None, session)
+    assert dialog.sizeHint().height() > 500 > dialog.minimumSizeHint().height()
+    dialog.move(0, 300)
+    dialog.show()
+    spin(app, lambda: dialog.frameGeometry().bottom() < 500, timeout=5)
+    assert dialog.frameGeometry().top() >= 0
+    assert dialog.scroll.verticalScrollBar().maximum() > 0
+    button = dialog.hosted_button
+    assert button.isVisible()
+    assert button.mapTo(dialog, button.rect().bottomLeft()).y() <= dialog.height()
+    dialog.close()
+    session.shutdown()

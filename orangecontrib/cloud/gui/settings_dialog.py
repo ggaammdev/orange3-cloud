@@ -28,7 +28,7 @@ import time
 from collections.abc import Callable
 from importlib import metadata
 
-from AnyQt.QtCore import QSize, Qt, QTimer, QUrl
+from AnyQt.QtCore import Qt, QTimer, QUrl
 from AnyQt.QtCore import pyqtSlot as Slot
 from AnyQt.QtGui import QBrush, QColor, QDesktopServices, QFont, QHideEvent, QShowEvent
 from AnyQt.QtWidgets import (
@@ -36,7 +36,6 @@ from AnyQt.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
-    QFrame,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
@@ -44,7 +43,6 @@ from AnyQt.QtWidgets import (
     QMessageBox,
     QPushButton,
     QRadioButton,
-    QScrollArea,
     QSpinBox,
     QStackedWidget,
     QTreeWidget,
@@ -57,6 +55,7 @@ from AnyQt.sip import isdeleted
 from orangecontrib.cloud.client.costs import format_price, machine_seconds
 from orangecontrib.cloud.client.providers.registry import registered_providers
 from orangecontrib.cloud.client.session import CloudSession, SessionState
+from orangecontrib.cloud.gui.fit_screen import FitScroll, fit_to_screen
 from orangecontrib.cloud.gui.provider_page import ProviderPage, make_page
 from orangecontrib.cloud.gui.relay import receiver
 from orangecontrib.cloud.gui.stop_machine import can_stop, cost_so_far, session_machine
@@ -141,22 +140,6 @@ def format_duration(seconds: float) -> str:
     return f"{secs} s"
 
 
-class _PageScroll(QScrollArea):
-    """A scroll area as tall as its page would like (Qt's default is about
-    24 lines), so it scrolls only when the dialog can't be that tall."""
-
-    def sizeHint(self) -> QSize:
-        page = self.widget()
-        if page is None:
-            return super().sizeHint()
-        hint = page.sizeHint()
-        margins = self.contentsMargins()
-        return QSize(
-            hint.width() + margins.left() + margins.right(),
-            hint.height() + margins.top() + margins.bottom(),
-        )
-
-
 class CloudSettingsDialog(QDialog):
     """Choose where the machine runs, set its limits, start and stop it."""
 
@@ -173,12 +156,22 @@ class CloudSettingsDialog(QDialog):
         self._info_time = 0.0
         self._local_versions = local_versions()
 
-        layout = QVBoxLayout(self)
+        # The boxes scroll when the screen is too small for them (or for a
+        # cloud's setup check results); the dialog first grows (_fit).
+        self.content = QWidget()
+        boxes = QVBoxLayout(self.content)
+        boxes.setContentsMargins(0, 0, 0, 0)
         limits = self._limits_box()  # first: the pages may save the settings
-        layout.addWidget(self._provider_box(), 1)  # gets the room the dialog grows by
-        layout.addWidget(limits)
-        layout.addWidget(self._machine_box())
-        layout.addWidget(self._versions_box())
+        boxes.addWidget(self._provider_box())
+        boxes.addWidget(limits)
+        boxes.addWidget(self._machine_box())
+        boxes.addWidget(self._versions_box())
+        boxes.addStretch(1)
+        self.scroll = FitScroll(widgetResizable=True, frameShape=FitScroll.Shape.NoFrame)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setWidget(self.content)
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.scroll, 1)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
         buttons.rejected.connect(self.close)
         buttons.addButton(self._hosted_interest_button(), QDialogButtonBox.ButtonRole.HelpRole)
@@ -200,7 +193,7 @@ class CloudSettingsDialog(QDialog):
         self._on_status(s.state.value)
         self._on_message(s.message)
         self._on_info(s.last_info)
-        self.resize(560, self.sizeHint().height())
+        self.resize(560, self.sizeHint().height())  # as tall as the screen allows: _fit
 
     # ------------------------------------------------------------------
     # Layout
@@ -227,15 +220,7 @@ class CloudSettingsDialog(QDialog):
             self.provider_pages.addWidget(page)
         row.addStretch(1)
         layout.addLayout(row)
-        # The pages scroll when the setup check's results don't fit; the
-        # dialog first grows for them (_fit_page).
-        self.provider_scroll = _PageScroll(widgetResizable=True, frameShape=QFrame.Shape.NoFrame)
-        self.provider_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.provider_scroll.setWidget(self.provider_pages)
-        # The group box's background, not the scroll area's.
-        self.provider_scroll.viewport().setAutoFillBackground(False)
-        self.provider_pages.setAutoFillBackground(False)
-        layout.addWidget(self.provider_scroll, 1)
+        layout.addWidget(self.provider_pages)
 
         ids = self._provider_ids
         index = ids.index(self.settings.provider) if self.settings.provider in ids else 0
@@ -302,14 +287,16 @@ class CloudSettingsDialog(QDialog):
         layout.addWidget(self.record_label)
 
         # Machines of the add-on that this session doesn't use (on a cloud).
-        row = QHBoxLayout()
+        self.leftovers_row = QWidget()  # hidden whole, so it takes no room
+        row = QHBoxLayout(self.leftovers_row)
+        row.setContentsMargins(0, 0, 0, 0)
         self.leftovers_label = QLabel(wordWrap=True)
         self.leftovers_label.setStyleSheet(f"color: {_MISMATCH.name()};")
         self.leftovers_button = QPushButton("Delete them…")
         self.leftovers_button.clicked.connect(self.delete_leftovers)
         row.addWidget(self.leftovers_label, 1)
         row.addWidget(self.leftovers_button)
-        layout.addLayout(row)
+        layout.addWidget(self.leftovers_row)
         self.leftovers: list[str] = []
         self._show_leftovers([])
 
@@ -473,8 +460,7 @@ class CloudSettingsDialog(QDialog):
     def _show_leftovers(self, names: list[str]) -> None:
         self.leftovers = names
         visible = bool(names) and self._finds_leftovers()
-        self.leftovers_label.setVisible(visible)
-        self.leftovers_button.setVisible(visible)
+        self.leftovers_row.setVisible(visible)
         self.leftovers_button.setEnabled(True)
         if visible:
             self.leftovers_label.setText(
@@ -485,26 +471,15 @@ class CloudSettingsDialog(QDialog):
     @Slot()
     def _on_setup_changed(self) -> None:
         self._update_buttons()
-        QTimer.singleShot(0, self._fit_page)  # once the page's layout has its new text
+        QTimer.singleShot(0, self._fit)  # once the page's layout has its new text
         if self.page.ready:
             self.check_leftovers()
 
-    def _fit_page(self) -> None:
-        """Grow the dialog until the provider's page shows whole (e.g. long
-        setup check results), as far as the screen allows; beyond that the
-        page scrolls."""
-        if isdeleted(self) or not self.isVisible():
-            return
-        viewport = self.provider_scroll.viewport()
-        page = self.provider_pages.currentWidget()
-        needed = page.heightForWidth(viewport.width()) if page.hasHeightForWidth() else -1
-        extra = max(needed, page.sizeHint().height()) - viewport.height()
-        screen = self.screen()
-        if extra <= 0 or screen is None:
-            return
-        frame = self.frameGeometry().height() - self.height()
-        room = screen.availableGeometry().height() - frame
-        self.resize(self.width(), min(self.height() + extra, max(room, self.height())))
+    def _fit(self) -> None:
+        """Grow the dialog until its boxes show whole (e.g. long setup check
+        results), as far as the screen allows; beyond that they scroll."""
+        if not isdeleted(self) and self.isVisible():
+            fit_to_screen(self, self.scroll)
 
     def _save(self) -> None:
         if self.provider_group.checkedId() >= 0:  # not while the pages are made
@@ -520,7 +495,7 @@ class CloudSettingsDialog(QDialog):
     def _on_provider_toggled(self, index: int, checked: bool) -> None:
         if checked:
             self.provider_pages.setCurrentIndex(index)
-            QTimer.singleShot(0, self._fit_page)
+            QTimer.singleShot(0, self._fit)
             self._save()
             self._update_buttons()
             self._show_leftovers(self.leftovers if self._finds_leftovers() else [])
@@ -559,10 +534,11 @@ class CloudSettingsDialog(QDialog):
     @Slot(str)
     def _on_message(self, message: str) -> None:
         self.message_label.setText(message)
+        self.message_label.setVisible(bool(message))  # no empty line under the state
 
     @Slot(str)
     def _on_error(self, message: str) -> None:
-        self.message_label.setText(message)
+        self._on_message(message)
         self.message_label.setStyleSheet(f"color: {_MISMATCH.name()};")
 
     @Slot(object)
@@ -744,7 +720,8 @@ class CloudSettingsDialog(QDialog):
 
     def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
-        QTimer.singleShot(0, self._fit_page)
+        fit_to_screen(self, self.scroll)  # before it shows: never taller than the screen
+        QTimer.singleShot(0, self._fit)  # again with the window's frame known
         if self._info is not None and self.session.is_connected:
             self._clock.start()
 

@@ -326,7 +326,7 @@ def test_dialog_start_needs_the_setup_check(compute, tmp_path):
         app.processEvents()
         time.sleep(0.01)
     assert dialog.leftovers == ["orange3-cloud-0123456789ab"]
-    assert not dialog.leftovers_button.isHidden()
+    assert not dialog.leftovers_row.isHidden()
 
     dialog.pages["gcp"].setup_checks = [Check("billing", "Billing", Status.FAILED)]
     dialog.pages["gcp"].setupChanged.emit()

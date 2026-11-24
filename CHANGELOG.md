@@ -2,6 +2,10 @@
 
 The changes in each release of orange3-cloud.
 
+## 1.0.3
+
+- The Cloud settings dialog fits on a laptop's screen: it is no taller than the screen, its boxes scroll, and its Close and "Notify me" buttons are always visible. Before, its bottom was off the screen unless the window was made full screen.
+
 ## 1.0.2
 
 - Every Cloud widget has a **Stop machine** button next to **Cloud settings…**. It asks first, with the machine's price and cost so far, and then does what **Stop** in Cloud settings does.
