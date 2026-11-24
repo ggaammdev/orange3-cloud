@@ -2,7 +2,7 @@
 
 The changes in each release of orange3-cloud.
 
-## Unreleased
+## 1.0.2
 
 - Every Cloud widget has a **Stop machine** button next to **Cloud settings…**. It asks first, with the machine's price and cost so far, and then does what **Stop** in Cloud settings does.
 - Quitting Orange while a cloud machine runs asks what to do with it: **Stop and quit** stops it before Orange quits, **Keep it running** leaves it running until its idle time is over, and **Cancel** keeps Orange open. A machine in Docker on your computer costs nothing, so quitting doesn't ask about it.
